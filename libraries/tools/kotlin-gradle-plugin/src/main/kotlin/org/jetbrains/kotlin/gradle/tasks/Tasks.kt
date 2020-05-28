@@ -217,6 +217,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
 
     @get:Internal
     internal var coroutinesFromGradleProperties: Coroutines? = null
+
     // Input is needed to force rebuild even if source files are not changed
     @get:Input
     internal val coroutinesStr: String
@@ -525,10 +526,13 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
             else -> incremental
         }
 
-    @Suppress("unused")
-    @get:OutputFile
+    @get:Internal
     val outputFile: File
-        get() = kotlinOptions.outputFile?.let(::File) ?: defaultOutputFile
+        get() = outputFilePath?.let(::File) ?: defaultOutputFile
+
+    @get:Input
+    val outputFilePath: String?
+        get() = kotlinOptions.outputFile
 
     override fun findKotlinCompilerClasspath(project: Project): List<File> =
         findKotlinJsCompilerClasspath(project)
