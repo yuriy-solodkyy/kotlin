@@ -8,7 +8,8 @@ package org.jetbrains.kotlin.backend.common.serialization
 import org.jetbrains.kotlin.backend.common.LoggingContext
 import org.jetbrains.kotlin.backend.common.ir.ir2string
 import org.jetbrains.kotlin.backend.common.lower.InnerClassesSupport
-import org.jetbrains.kotlin.backend.common.overrides.PlatformFakeOverrideClassFilter
+import org.jetbrains.kotlin.backend.common.overrides.FileLocalFakeOverrideBuilder
+import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideClassFilter
 import org.jetbrains.kotlin.backend.common.peek
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.backend.common.push
@@ -28,7 +29,6 @@ import org.jetbrains.kotlin.ir.descriptors.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.*
-import org.jetbrains.kotlin.ir.symbols.impl.IrPublicSymbolBase
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.*
 import org.jetbrains.kotlin.ir.util.*
@@ -114,7 +114,7 @@ abstract class IrFileDeserializer(
     val symbolTable: SymbolTable,
     protected var deserializeBodies: Boolean,
     private val deserializeFakeOverrides: Boolean,
-    private val fakeOverrideQueue: MutableList<IrClass>,
+    private val privateMembersHaveSignatures: Boolean,
     private val allowErrorNodes: Boolean
 ) {
     protected val irFactory: IrFactory get() = symbolTable.irFactory
@@ -134,7 +134,8 @@ abstract class IrFileDeserializer(
     private val delegatedSymbolMap = mutableMapOf<IrSymbol, IrSymbol>()
 
     abstract val deserializeInlineFunctions: Boolean
-    abstract val platformFakeOverrideClassFilter: PlatformFakeOverrideClassFilter
+    abstract val platformFakeOverrideClassFilter: FakeOverrideClassFilter
+    abstract val fileLocalFakeOverrideBuilder: FileLocalFakeOverrideBuilder
 
     fun deserializeFqName(fqn: List<Int>): String =
         fqn.joinToString(".", transform = ::deserializeString)
@@ -1088,11 +1089,10 @@ abstract class IrFileDeserializer(
 
                 (descriptor as? WrappedClassDescriptor)?.bind(this)
 
-                if (!deserializeFakeOverrides) {
-                    if (symbol.isPublicApi) {
-                        fakeOverrideQueue.add(this)
-                    }
-                }
+                // We need class signatures to build private fake override signatures later.
+                declarationTable.assumeDeclarationSignature(this, signature)
+
+                fileLocalFakeOverrideBuilder.enqueueClass(this)
             }
         }
 
@@ -1471,6 +1471,7 @@ abstract class IrFileDeserializer(
     private fun isSkippableFakeOverride(proto: ProtoDeclaration, parent: IrClass): Boolean {
         if (deserializeFakeOverrides) return false
         if (!platformFakeOverrideClassFilter.constructFakeOverrides(parent)) return false
+        if (!privateMembersHaveSignatures) return false
 
         val symbol = when (proto.declaratorCase!!) {
             IR_FUNCTION -> deserializeIrSymbol(proto.irFunction.base.base.symbol)
@@ -1478,8 +1479,8 @@ abstract class IrFileDeserializer(
             // Don't consider IR_FIELDS here.
             else -> return false
         }
-        if (symbol !is IrPublicSymbolBase<*>) return false
-        if (!symbol.signature.isPublic) return false
+        // if (symbol !is IrPublicSymbolBase<*>) return false
+        // if (!symbol.signature.isPublic) return false
 
         return when (proto.declaratorCase!!) {
             IR_FUNCTION -> FunctionFlags.decode(proto.irFunction.base.base.flags).isFakeOverride

@@ -792,6 +792,14 @@ private fun IrDeclaration.renderDeclarationParentFqn(sb: StringBuilder) {
     }
 }
 
+private fun IrSimpleFunction.renderReturnType(): String {
+    return try {
+        this.returnType.render()
+    } catch (e: IllegalStateException){
+        "<Uninitialized type>"
+    }
+}
+
 fun IrType.render() = RenderIrElementVisitor().renderType(this)
 
 fun IrTypeArgument.render() =
