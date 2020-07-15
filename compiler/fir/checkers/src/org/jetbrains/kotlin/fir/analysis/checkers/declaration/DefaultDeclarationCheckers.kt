@@ -14,7 +14,7 @@ object CommonDeclarationCheckers : DeclarationCheckers() {
 
     override val memberDeclarationCheckers: List<FirMemberDeclarationChecker> = listOf(
         FirInfixFunctionDeclarationChecker,
-        FirExposedVisibilityChecker,
+        FirExposedVisibilityDeclarationChecker,
     )
 
     override val constructorCheckers: List<FirConstructorChecker> = listOf(
