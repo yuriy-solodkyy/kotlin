@@ -1705,6 +1705,11 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
         public void testDeprecated() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/deprecated.kt");
         }
+
+        @TestMetadata("samWithReceiver.kt")
+        public void testSamWithReceiver() throws Exception {
+            runTest("compiler/testData/ir/irText/firProblems/samWithReceiver.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/ir/irText/lambdas")
