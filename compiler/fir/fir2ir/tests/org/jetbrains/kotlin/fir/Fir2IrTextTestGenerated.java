@@ -1707,6 +1707,11 @@ public class Fir2IrTextTestGenerated extends AbstractFir2IrTextTest {
             runTest("compiler/testData/ir/irText/firProblems/deprecated.kt");
         }
 
+        @TestMetadata("jsHasMetadata.kt")
+        public void testJsHasMetadata() throws Exception {
+            runTest("compiler/testData/ir/irText/firProblems/jsHasMetadata.kt");
+        }
+
         @TestMetadata("samWithReceiver.kt")
         public void testSamWithReceiver() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/samWithReceiver.kt");
