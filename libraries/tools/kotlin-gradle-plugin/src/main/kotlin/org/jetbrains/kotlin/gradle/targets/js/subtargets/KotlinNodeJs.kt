@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.gradle.targets.js.subtargets
 
+import org.gradle.api.Action
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsNodeDsl
@@ -21,12 +22,8 @@ open class KotlinNodeJs @Inject constructor(target: KotlinJsTarget) :
 
     private val runTaskName = disambiguateCamelCased("run")
 
-    override fun runTask(body: NodeJsExec.() -> Unit) {
+    override fun runTask(body: Action<NodeJsExec>) {
         project.tasks.withType<NodeJsExec>().named(runTaskName).configure(body)
-    }
-
-    override fun testTask(body: KotlinJsTest.() -> Unit) {
-        super<KotlinJsSubTarget>.testTask(body)
     }
 
     override fun configureDefaultTestFramework(testTask: KotlinJsTest) {

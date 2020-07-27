@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.gradle.targets.js.ir
 
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
@@ -47,37 +48,37 @@ open class KotlinBrowserJsIr @Inject constructor(target: KotlinJsIrTarget) :
         }
     }
 
-    override fun commonWebpackConfig(body: KotlinWebpackConfig.() -> Unit) {
+    override fun commonWebpackConfig(body: Action<KotlinWebpackConfig>) {
         webpackTaskConfigurations.add {
-            webpackConfigAppliers.add(body)
+            webpackConfigAppliers.add { body.execute(it) }
         }
         runTaskConfigurations.add {
-            webpackConfigAppliers.add(body)
+            webpackConfigAppliers.add { body.execute(it) }
         }
-        testTask {
-            onTestFrameworkSet {
+        testTask(Action { testTask ->
+            testTask.onTestFrameworkSet {
                 if (it is KotlinKarma) {
-                    it.webpackConfig.body()
+                    body.execute(it.webpackConfig)
                 }
             }
-        }
+        })
     }
 
-    override fun runTask(body: KotlinWebpack.() -> Unit) {
-        runTaskConfigurations.add(body)
+    override fun runTask(body: Action<KotlinWebpack>) {
+        runTaskConfigurations.add { body.execute(this) }
     }
 
     @ExperimentalDistributionDsl
-    override fun distribution(body: Distribution.() -> Unit) {
-        distribution.body()
+    override fun distribution(body: Action<Distribution>) {
+        body.execute(distribution)
     }
 
-    override fun webpackTask(body: KotlinWebpack.() -> Unit) {
-        webpackTaskConfigurations.add(body)
+    override fun webpackTask(body: Action<KotlinWebpack>) {
+        webpackTaskConfigurations.add { body.execute(this) }
     }
 
     @ExperimentalDceDsl
-    override fun dceTask(body: KotlinJsDce.() -> Unit) {
+    override fun dceTask(body: Action<KotlinJsDce>) {
         project.logger.warn("dceTask configuration is useless with IR compiler. Use @JsExport on declarations instead.")
     }
 

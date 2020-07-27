@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.gradle.targets.js.ir
 
+import org.gradle.api.Action
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsNodeDsl
@@ -22,7 +23,7 @@ open class KotlinNodeJsIr @Inject constructor(target: KotlinJsIrTarget) :
 
     private val runTaskName = disambiguateCamelCased("run")
 
-    override fun runTask(body: NodeJsExec.() -> Unit) {
+    override fun runTask(body: Action<NodeJsExec>) {
         project.tasks.withType<NodeJsExec>().named(runTaskName).configure(body)
     }
 

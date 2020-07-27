@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.gradle.targets.js.dsl
 
 import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.util.ConfigureUtil
@@ -37,20 +38,64 @@ interface KotlinJsSubTargetContainerDsl : KotlinTarget {
 interface KotlinJsTargetDsl : KotlinTarget {
     var moduleName: String?
 
-    fun browser() = browser { }
-    fun browser(body: KotlinJsBrowserDsl.() -> Unit)
-    fun browser(fn: Closure<*>) {
-        browser {
-            ConfigureUtil.configure(fn, this)
-        }
+    fun browser() = browser(Action {})
+    fun browser(body: Action<KotlinJsBrowserDsl>)
+
+    @Deprecated(
+        "Use browser(Action<KotlinJsBrowserDsl>) instead",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith(
+            "browser(Action(body))",
+            "org.gradle.api.Action"
+        )
+    )
+    fun browser(body: KotlinJsBrowserDsl.() -> Unit) {
+        browser(Action(body))
     }
 
-    fun nodejs() = nodejs { }
-    fun nodejs(body: KotlinJsNodeDsl.() -> Unit)
+    @Deprecated(
+        "Use browser(Action<KotlinJsBrowserDsl>) instead",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith(
+            "browser(Action(fn))",
+            "org.gradle.api.Action"
+        )
+    )
+    fun browser(fn: Closure<*>) {
+        browser(
+            Action { ConfigureUtil.configure(fn, this) }
+        )
+    }
+
+    fun nodejs() = nodejs(Action {})
+    fun nodejs(body: Action<KotlinJsNodeDsl>)
+
+    @Deprecated(
+        "Use nodejs(Action<KotlinJsNodeDsl>) instead",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith(
+            "nodejs(Action(body))",
+            "org.gradle.api.Action"
+        )
+    )
+    fun nodejs(body: KotlinJsNodeDsl.() -> Unit) {
+        nodejs(Action(body))
+    }
+
+    @Deprecated(
+        "Use nodejs(Action<KotlinJsNodeDsl>) instead",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith(
+            "nodejs(Action(fn))",
+            "org.gradle.api.Action"
+        )
+    )
     fun nodejs(fn: Closure<*>) {
-        nodejs {
-            ConfigureUtil.configure(fn, this)
-        }
+        nodejs(
+            Action {
+                ConfigureUtil.configure(fn, this)
+            }
+        )
     }
 
     fun useCommonJs()
@@ -73,59 +118,225 @@ interface KotlinJsTargetDsl : KotlinTarget {
 }
 
 interface KotlinJsSubTargetDsl {
-    fun testTask(body: KotlinJsTest.() -> Unit)
+    fun testTask(body: Action<KotlinJsTest>)
+
+    @Deprecated(
+        "Use testTask(Action<KotlinJsTest>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "testTask(Action(body))",
+            "org.gradle.api.Action"
+        )
+    )
+    fun testTask(body: KotlinJsTest.() -> Unit) {
+        testTask(Action(body))
+    }
+
+    @Deprecated(
+        "Use testTask(Action<KotlinJsTest>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "testTask(Action(fn))",
+            "org.gradle.api.Action"
+        )
+    )
     fun testTask(fn: Closure<*>) {
-        testTask {
-            ConfigureUtil.configure(fn, this)
-        }
+        testTask(
+            Action {
+                ConfigureUtil.configure(fn, this)
+            }
+        )
     }
 
     val testRuns: NamedDomainObjectContainer<KotlinJsPlatformTestRun>
 }
 
 interface KotlinJsBrowserDsl : KotlinJsSubTargetDsl {
-    fun commonWebpackConfig(body: KotlinWebpackConfig.() -> Unit)
-    fun commonWebpackConfig(fn: Closure<*>) {
-        commonWebpackConfig {
-            ConfigureUtil.configure(fn, this)
-        }
+    fun commonWebpackConfig(body: Action<KotlinWebpackConfig>)
+
+    @Deprecated(
+        "Use commonWebpackConfig(Action<KotlinWebpackConfig>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "commonWebpackConfig(Action(body))",
+            "org.gradle.api.Action"
+        )
+    )
+    fun commonWebpackConfig(body: KotlinWebpackConfig.() -> Unit) {
+        commonWebpackConfig(Action(body))
     }
 
-    fun runTask(body: KotlinWebpack.() -> Unit)
+    @Deprecated(
+        "Use commonWebpackConfig(Action<KotlinWebpackConfig>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "commonWebpackConfig(Action(fn))",
+            "org.gradle.api.Action"
+        )
+    )
+    fun commonWebpackConfig(fn: Closure<*>) {
+        commonWebpackConfig(
+            Action {
+                ConfigureUtil.configure(fn, this)
+            }
+        )
+    }
+
+    fun runTask(body: Action<KotlinWebpack>)
+
+    @Deprecated(
+        "Use runTask(Action<KotlinWebpack>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "runTask(Action(body))",
+            "org.gradle.api.Action"
+        )
+    )
+    fun runTask(body: KotlinWebpack.() -> Unit) {
+        runTask(Action(body))
+    }
+
+    @Deprecated(
+        "Use runTask(Action<KotlinWebpack>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "runTask(Action(body))",
+            "org.gradle.api.Action"
+        )
+    )
     fun runTask(fn: Closure<*>) {
-        runTask {
-            ConfigureUtil.configure(fn, this)
-        }
+        runTask(
+            Action {
+                ConfigureUtil.configure(fn, this)
+            }
+        )
     }
 
     @ExperimentalDistributionDsl
-    fun distribution(body: Distribution.() -> Unit)
+    fun distribution(body: Action<Distribution>)
 
+    @Deprecated(
+        "Use distribution(Action<Distribution>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "distribution(Action(body))",
+            "org.gradle.api.Action"
+        )
+    )
+    @ExperimentalDistributionDsl
+    fun distribution(body: Distribution.() -> Unit) {
+        distribution(Action(body))
+    }
+
+    @Deprecated(
+        "Use distribution(Action<Distribution>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "distribution(Action(fn))",
+            "org.gradle.api.Action"
+        )
+    )
     @ExperimentalDistributionDsl
     fun distribution(fn: Closure<*>) {
-        distribution {
-            ConfigureUtil.configure(fn, this)
-        }
+        distribution(
+            Action {
+                ConfigureUtil.configure(fn, this)
+            }
+        )
     }
 
-    fun webpackTask(body: KotlinWebpack.() -> Unit)
+    fun webpackTask(body: Action<KotlinWebpack>)
+
+    @Deprecated(
+        "Use webpackTask(Action<KotlinWebpack>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "webpackTask(Action(body))",
+            "org.gradle.api.Action"
+        )
+    )
+    fun webpackTask(body: KotlinWebpack.() -> Unit) {
+        webpackTask(Action(body))
+    }
+
+    @Deprecated(
+        "Use webpackTask(Action<KotlinWebpack>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "webpackTask(Action(fn))",
+            "org.gradle.api.Action"
+        )
+    )
     fun webpackTask(fn: Closure<*>) {
-        webpackTask {
-            ConfigureUtil.configure(fn, this)
-        }
+        webpackTask(
+            Action {
+                ConfigureUtil.configure(fn, this)
+            }
+        )
     }
 
     @ExperimentalDceDsl
-    fun dceTask(body: KotlinJsDce.() -> Unit)
+    fun dceTask(body: Action<KotlinJsDce>)
 
+    @Deprecated(
+        "Use dceTask(Action<KotlinJsDce>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "dceTask(Action(body))",
+            "org.gradle.api.Action"
+        )
+    )
+    @ExperimentalDceDsl
+    fun dceTask(body: KotlinJsDce.() -> Unit) {
+        dceTask(Action(body))
+    }
+
+    @Deprecated(
+        "Use dceTask(Action<KotlinJsDce>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "dceTask(Action(fn))",
+            "org.gradle.api.Action"
+        )
+    )
     @ExperimentalDceDsl
     fun dceTask(fn: Closure<*>) {
-        dceTask {
-            ConfigureUtil.configure(fn, this)
-        }
+        dceTask(
+            Action {
+                ConfigureUtil.configure(fn, this)
+            }
+        )
     }
 }
 
 interface KotlinJsNodeDsl : KotlinJsSubTargetDsl {
-    fun runTask(body: NodeJsExec.() -> Unit)
+    fun runTask(body: Action<NodeJsExec>)
+
+    @Deprecated(
+        "Use runTask(Action<NodeJsExec>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "runTask(Action(body))",
+            "org.gradle.api.Action"
+        )
+    )
+    fun runTask(body: NodeJsExec.() -> Unit) {
+        runTask(Action(body))
+    }
+
+    @Deprecated(
+        "Use runTask(Action<NodeJsExec>) instead",
+        level = DeprecationLevel.HIDDEN,
+        replaceWith = ReplaceWith(
+            "runTask(Action(fn))",
+            "org.gradle.api.Action"
+        )
+    )
+    fun runTask(fn: Closure<*>) {
+        runTask(
+            Action {
+                ConfigureUtil.configure(fn, this)
+            }
+        )
+    }
 }

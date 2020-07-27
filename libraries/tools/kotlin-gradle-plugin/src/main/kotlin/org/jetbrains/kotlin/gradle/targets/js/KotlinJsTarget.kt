@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.gradle.targets.js
 
+import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskProvider
@@ -50,6 +51,11 @@ constructor(
             }
             field = value
         }
+
+    override fun browser(body: Action<KotlinJsBrowserDsl>) {
+        body.execute(browser)
+        irTarget?.browser(body)
+    }
 
     internal val commonFakeApiElementsConfigurationName: String
         get() = disambiguateName("commonFakeApiElements")
@@ -156,9 +162,9 @@ constructor(
     override val isBrowserConfigured: Boolean
         get() = browserLazyDelegate.isInitialized()
 
-    override fun browser(body: KotlinJsBrowserDsl.() -> Unit) {
-        body(browser)
-        irTarget?.browser(body)
+    override fun nodejs(body: Action<KotlinJsNodeDsl>) {
+        body.execute(nodejs)
+        irTarget?.nodejs(body)
     }
 
     private val nodejsLazyDelegate = lazy {
@@ -184,14 +190,9 @@ constructor(
     override val isNodejsConfigured: Boolean
         get() = nodejsLazyDelegate.isInitialized()
 
-    override fun nodejs(body: KotlinJsNodeDsl.() -> Unit) {
-        body(nodejs)
-        irTarget?.nodejs(body)
-    }
-
     override fun whenBrowserConfigured(body: KotlinJsBrowserDsl.() -> Unit) {
         if (browserLazyDelegate.isInitialized()) {
-            browser(body)
+            browser(Action(body))
         } else {
             browserConfiguredHandlers += body
         }
@@ -199,7 +200,7 @@ constructor(
 
     override fun whenNodejsConfigured(body: KotlinJsNodeDsl.() -> Unit) {
         if (nodejsLazyDelegate.isInitialized()) {
-            nodejs(body)
+            nodejs(Action(body))
         } else {
             nodejsConfiguredHandlers += body
         }

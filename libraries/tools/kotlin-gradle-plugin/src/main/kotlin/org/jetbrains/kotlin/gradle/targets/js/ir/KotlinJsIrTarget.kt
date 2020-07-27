@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.gradle.targets.js.ir
 
+import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -49,6 +50,10 @@ constructor(
             }
             field = value
         }
+
+    override fun browser(body: Action<KotlinJsBrowserDsl>) {
+        body.execute(browser)
+    }
 
     override fun createUsageContexts(producingCompilation: KotlinCompilation<*>): Set<DefaultKotlinUsageContext> {
         val usageContexts = super.createUsageContexts(producingCompilation)
@@ -110,8 +115,8 @@ constructor(
     override val isBrowserConfigured: Boolean
         get() = browserLazyDelegate.isInitialized()
 
-    override fun browser(body: KotlinJsBrowserDsl.() -> Unit) {
-        body(browser)
+    override fun nodejs(body: Action<KotlinJsNodeDsl>) {
+        body.execute(nodejs)
     }
 
     private val nodejsLazyDelegate = lazy {
@@ -132,10 +137,6 @@ constructor(
     override val isNodejsConfigured: Boolean
         get() = nodejsLazyDelegate.isInitialized()
 
-    override fun nodejs(body: KotlinJsNodeDsl.() -> Unit) {
-        body(nodejs)
-    }
-
     private fun KotlinJsIrSubTarget.configureSubTarget() {
         configureTestSideEffect
         configure()
@@ -143,7 +144,7 @@ constructor(
 
     override fun whenBrowserConfigured(body: KotlinJsBrowserDsl.() -> Unit) {
         if (browserLazyDelegate.isInitialized()) {
-            browser(body)
+            browser(Action(body))
         } else {
             browserConfiguredHandlers += body
         }
@@ -151,7 +152,7 @@ constructor(
 
     override fun whenNodejsConfigured(body: KotlinJsNodeDsl.() -> Unit) {
         if (nodejsLazyDelegate.isInitialized()) {
-            nodejs(body)
+            nodejs(Action(body))
         } else {
             nodejsConfiguredHandlers += body
         }
