@@ -128,4 +128,9 @@ interface KotlinJsBrowserDsl : KotlinJsSubTargetDsl {
 
 interface KotlinJsNodeDsl : KotlinJsSubTargetDsl {
     fun runTask(body: NodeJsExec.() -> Unit)
+    fun runTask(fn: Closure<*>) {
+        runTask {
+            ConfigureUtil.configure(fn, this)
+        }
+    }
 }
