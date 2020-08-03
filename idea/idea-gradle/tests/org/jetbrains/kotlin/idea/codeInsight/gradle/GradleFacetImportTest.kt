@@ -95,7 +95,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertEquals(JvmPlatforms.jvm18, targetPlatform)
             Assert.assertEquals("1.7", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
-                "-Xdump-declarations-to=tmp -Xsingle-module",
+                "-Xallow-no-source-files -Xdump-declarations-to=tmp -Xsingle-module",
                 compilerSettings!!.additionalArguments
             )
         }
@@ -107,7 +107,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertEquals(JvmPlatforms.jvm16, targetPlatform)
             Assert.assertEquals("1.6", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
-                "-Xdump-declarations-to=tmpTest",
+                "-Xallow-no-source-files -Xdump-declarations-to=tmpTest",
                 compilerSettings!!.additionalArguments
             )
         }
@@ -148,20 +148,20 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         with(facetSettings) {
             Assert.assertEquals("1.3", languageLevel!!.versionString)
             Assert.assertEquals("1.3", apiLevel!!.versionString)
-            Assert.assertEquals(JvmPlatforms.jvm18, targetPlatform)
+            Assert.assertEquals(JvmPlatforms.jvm16, targetPlatform)
             Assert.assertEquals("1.7", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
-                "-Xdump-declarations-to=tmp -Xsingle-module",
+                "-Xallow-no-source-files -Xdump-declarations-to=tmp -Xsingle-module",
                 compilerSettings!!.additionalArguments
             )
         }
         with(testFacetSettings) {
             Assert.assertEquals("1.3", languageLevel!!.versionString)
-            Assert.assertEquals("1.3", apiLevel!!.versionString)
+            Assert.assertEquals("1.0", apiLevel!!.versionString)
             Assert.assertEquals(JvmPlatforms.jvm16, targetPlatform)
             Assert.assertEquals("1.6", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
-                "-Xdump-declarations-to=tmpTest",
+                "-Xallow-no-source-files -Xdump-declarations-to=tmpTest",
                 compilerSettings!!.additionalArguments
             )
         }
@@ -195,7 +195,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertEquals(JvmPlatforms.jvm18, targetPlatform)
             Assert.assertEquals("1.7", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
-                "-Xdump-declarations-to=tmp -Xsingle-module",
+                "-Xallow-no-source-files -Xdump-declarations-to=tmp -Xsingle-module",
                 compilerSettings!!.additionalArguments
             )
         }
@@ -205,7 +205,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertEquals(JvmPlatforms.jvm16, targetPlatform)
             Assert.assertEquals("1.6", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
-                "-Xdump-declarations-to=tmpTest",
+                "-Xallow-no-source-files -Xdump-declarations-to=tmpTest",
                 compilerSettings!!.additionalArguments
             )
         }
@@ -241,7 +241,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertEquals(JvmPlatforms.jvm18, targetPlatform)
             Assert.assertEquals("1.7", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
-                "-Xdump-declarations-to=tmp -Xsingle-module",
+                "-Xallow-no-source-files -Xdump-declarations-to=tmp -Xsingle-module",
                 compilerSettings!!.additionalArguments
             )
         }
@@ -251,7 +251,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertEquals(JvmPlatforms.jvm16, targetPlatform)
             Assert.assertEquals("1.6", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
-                "-Xdump-declarations-to=tmpTest",
+                "-Xallow-no-source-files -Xdump-declarations-to=tmpTest",
                 compilerSettings!!.additionalArguments
             )
         }
@@ -611,7 +611,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
 
         with(facetSettings) {
             Assert.assertEquals(
-                listOf("-Xbuild-file=module with spaces"),
+                listOf("-Xallow-no-source-files", "-Xbuild-file=module with spaces"),
                 compilerSettings!!.additionalArgumentsAsList
             )
         }
@@ -847,6 +847,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
 
         Assert.assertEquals(
             listOf(
+                "file:///src/main/java" to SourceKotlinRootType,
                 "file:///src/main/kotlin" to SourceKotlinRootType,
                 "file:///src/main/resources" to ResourceKotlinRootType
             ),
@@ -854,6 +855,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         )
         Assert.assertEquals(
             listOf(
+                "file:///src/test/java" to TestSourceKotlinRootType,
                 "file:///src/test/kotlin" to TestSourceKotlinRootType,
                 "file:///src/test/resources" to TestResourceKotlinRootType
             ),
@@ -870,7 +872,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         Assert.assertEquals(LanguageVersion.KOTLIN_1_3, facetSettings.languageLevel)
 
         // We haven't lost internal argument during importing to facet
-        Assert.assertEquals("-XXLanguage:+InlineClasses", facetSettings.compilerSettings?.additionalArguments)
+        Assert.assertEquals("-Xallow-no-source-files -XXLanguage:+InlineClasses", facetSettings.compilerSettings?.additionalArguments)
 
         // Inline classes are enabled even though LV = 1.2
         Assert.assertEquals(
@@ -910,7 +912,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         importProject()
 
         Assert.assertEquals(
-            "-version",
+            "-Xallow-no-source-files",
             testFacetSettings.compilerSettings!!.additionalArguments
         )
 
