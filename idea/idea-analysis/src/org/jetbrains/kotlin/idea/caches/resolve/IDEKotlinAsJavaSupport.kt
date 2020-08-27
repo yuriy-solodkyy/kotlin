@@ -118,6 +118,10 @@ class IDEKotlinAsJavaSupport(private val project: Project) : KotlinAsJavaSupport
         )
     }
 
+    companion object {
+        var x = 0
+    }
+
     override fun getLightClass(classOrObject: KtClassOrObject): KtLightClass? {
         if (!classOrObject.isValid) {
             return null
@@ -131,7 +135,13 @@ class IDEKotlinAsJavaSupport(private val project: Project) : KotlinAsJavaSupport
                 ProjectRootsUtil.isLibraryClassFile(project, virtualFile) ->
                     return getLightClassForDecompiledClassOrObject(classOrObject)
                 ProjectRootsUtil.isLibrarySourceFile(project, virtualFile) ->
-                    return SourceNavigationHelper.getOriginalClass(classOrObject) as? KtLightClass
+                    return try {
+                        x++
+                        LOG.info("SOE Iteration $x")
+                        SourceNavigationHelper.getOriginalClass(classOrObject) as? KtLightClass
+                    } finally {
+                        x--
+                    }
             }
         }
         if ((classOrObject.containingFile as? KtFile)?.analysisContext != null ||

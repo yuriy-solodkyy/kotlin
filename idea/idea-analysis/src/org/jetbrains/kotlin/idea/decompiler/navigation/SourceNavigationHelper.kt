@@ -250,9 +250,12 @@ object SourceNavigationHelper {
             }
 
             override fun contains(file: VirtualFile): Boolean {
-                if (file == vFile) return false
-                val entries = idx.getOrderEntriesForFile(file)
-                return entries.any { orderEntries.contains(it) }
+                return run {
+                    LOG.info("SOE TEST: requested - ${file.path}, test - ${vFile.path}\"")
+                    if (file == vFile) return@run false
+                    val entries = idx.getOrderEntriesForFile(file)
+                    return@run entries.any { orderEntries.contains(it) }
+                }.also { LOG.info(if (it) "FOUND" else "FILTERED") }
             }
 
             override fun isSearchInModuleContent(aModule: Module): Boolean {
