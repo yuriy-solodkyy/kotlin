@@ -37,7 +37,7 @@ data class ResolutionContext(
     var bodyResolveContext: BodyResolveContext
 ) {
     val inferenceComponents: InferenceComponents
-        get() = bodyResolveComponents.inferenceComponents
+        get() = session.inferenceComponents
 
     val samResolver: FirSamResolver
         get() = bodyResolveComponents.samResolver
