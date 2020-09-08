@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.references.FirSuperReference
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.inference.*
+import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculator
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SyntheticSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
@@ -38,6 +39,9 @@ data class ResolutionContext(
 
     val samResolver: FirSamResolver
         get() = bodyResolveComponents.samResolver
+
+    val returnTypeCalculator: ReturnTypeCalculator
+        get() = bodyResolveComponents.returnTypeCalculator
 }
 
 abstract class ResolutionStage {
