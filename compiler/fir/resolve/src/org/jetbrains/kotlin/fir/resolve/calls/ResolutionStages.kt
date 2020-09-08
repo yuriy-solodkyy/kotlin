@@ -29,14 +29,25 @@ import org.jetbrains.kotlin.resolve.calls.inference.model.SimpleConstraintSystem
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind.*
 
+data class ResolutionContext(
+    val session: FirSession,
+    val bodyResolveComponents: BodyResolveComponents
+) {
+    val inferenceComponents: InferenceComponents
+        get() = bodyResolveComponents.inferenceComponents
+
+    val samResolver: FirSamResolver
+        get() = bodyResolveComponents.samResolver
+}
+
 abstract class ResolutionStage {
-    abstract suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo)
+    abstract suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext)
 }
 
 abstract class CheckerStage : ResolutionStage()
 
 internal object CheckExplicitReceiverConsistency : ResolutionStage() {
-    override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
+    override suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext) {
         val receiverKind = candidate.explicitReceiverKind
         val explicitReceiver = callInfo.explicitReceiver
         // TODO: add invoke cases
@@ -71,7 +82,7 @@ internal sealed class CheckReceivers : ResolutionStage() {
             return this == DISPATCH_RECEIVER || this == BOTH_RECEIVERS
         }
 
-        override fun Candidate.getReceiverType(): ConeKotlinType? {
+        override fun Candidate.getReceiverType(context: ResolutionContext): ConeKotlinType? {
             return dispatchReceiverValue?.type
         }
     }
@@ -85,25 +96,25 @@ internal sealed class CheckReceivers : ResolutionStage() {
             return this == EXTENSION_RECEIVER || this == BOTH_RECEIVERS
         }
 
-        override fun Candidate.getReceiverType(): ConeKotlinType? {
+        override fun Candidate.getReceiverType(context: ResolutionContext): ConeKotlinType? {
             val callableSymbol = symbol as? FirCallableSymbol<*> ?: return null
             val callable = callableSymbol.fir
             val receiverType = callable.receiverTypeRef?.coneType
             if (receiverType != null) return receiverType
             val returnTypeRef = callable.returnTypeRef as? FirResolvedTypeRef ?: return null
-            if (!returnTypeRef.type.isExtensionFunctionType(bodyResolveComponents.session)) return null
+            if (!returnTypeRef.type.isExtensionFunctionType(context.session)) return null
             return (returnTypeRef.type.typeArguments.firstOrNull() as? ConeKotlinTypeProjection)?.type
         }
     }
 
-    abstract fun Candidate.getReceiverType(): ConeKotlinType?
+    abstract fun Candidate.getReceiverType(context: ResolutionContext): ConeKotlinType?
 
     abstract fun ExplicitReceiverKind.shouldBeCheckedAgainstExplicit(): Boolean
 
     abstract fun ExplicitReceiverKind.shouldBeCheckedAgainstImplicit(): Boolean
 
-    override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
-        val expectedReceiverType = candidate.getReceiverType()
+    override suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext) {
+        val expectedReceiverType = candidate.getReceiverType(context)
         val explicitReceiverExpression = callInfo.explicitReceiver
         val explicitReceiverKind = candidate.explicitReceiverKind
 
@@ -118,6 +129,7 @@ internal sealed class CheckReceivers : ResolutionStage() {
                     expectedType = candidate.substitutor.substituteOrSelf(expectedReceiverType),
                     expectedTypeRef = explicitReceiverExpression.typeRef,
                     sink = sink,
+                    context = context,
                     isReceiver = true,
                     isDispatch = this is Dispatch
                 )
@@ -130,6 +142,7 @@ internal sealed class CheckReceivers : ResolutionStage() {
                         argumentType = argumentExtensionReceiverValue.type,
                         expectedType = candidate.substitutor.substituteOrSelf(expectedReceiverType.type),
                         sink = sink,
+                        context = context,
                         isReceiver = true,
                         isDispatch = this is Dispatch
                     )
@@ -148,7 +161,7 @@ private fun FirExpression.isSuperReferenceExpression(): Boolean {
 }
 
 internal object MapArguments : ResolutionStage() {
-    override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
+    override suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext) {
         val symbol = candidate.symbol as? FirFunctionSymbol<*> ?: return sink.reportDiagnostic(HiddenCandidate)
         val function = symbol.fir
 
@@ -161,7 +174,7 @@ internal object MapArguments : ResolutionStage() {
 }
 
 internal object CheckArguments : CheckerStage() {
-    override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
+    override suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext) {
         val argumentMapping =
             candidate.argumentMapping ?: error("Argument should be already mapped while checking arguments!")
         for (argument in callInfo.arguments) {
@@ -170,7 +183,8 @@ internal object CheckArguments : CheckerStage() {
                 argument,
                 parameter,
                 isReceiver = false,
-                sink = sink
+                sink = sink,
+                context = context
             )
             if (candidate.system.hasContradiction) {
                 sink.yieldDiagnostic(InapplicableCandidate)
@@ -181,11 +195,11 @@ internal object CheckArguments : CheckerStage() {
 }
 
 internal object EagerResolveOfCallableReferences : CheckerStage() {
-    override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
+    override suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext) {
         if (candidate.postponedAtoms.isEmpty()) return
         for (atom in candidate.postponedAtoms) {
             if (atom is ResolvedCallableReferenceAtom) {
-                if (!candidate.bodyResolveComponents.callResolver.resolveCallableReference(candidate.csBuilder, atom)) {
+                if (!context.bodyResolveComponents.callResolver.resolveCallableReference(candidate.csBuilder, atom)) {
                     sink.yieldDiagnostic(InapplicableCandidate)
                 }
             }
@@ -194,10 +208,10 @@ internal object EagerResolveOfCallableReferences : CheckerStage() {
 }
 
 internal object CheckCallableReferenceExpectedType : CheckerStage() {
-    override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
+    override suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext) {
         val outerCsBuilder = callInfo.outerCSBuilder ?: return
         val expectedType = callInfo.expectedType
-        val candidateSymbol = candidate.symbol as? FirCallableSymbol<*> ?: return
+        if (candidate.symbol !is FirCallableSymbol<*>) return
 
         val resultingReceiverType = when (callInfo.lhs) {
             is DoubleColonLHS.Type -> callInfo.lhs.type.takeIf { callInfo.explicitReceiver !is FirResolvedQualifier }
@@ -206,7 +220,7 @@ internal object CheckCallableReferenceExpectedType : CheckerStage() {
 
         val fir: FirCallableDeclaration<*> = candidate.symbol.fir
 
-        val returnTypeRef = candidate.bodyResolveComponents.returnTypeCalculator.tryCalculateReturnType(fir)
+        val returnTypeRef = context.bodyResolveComponents.returnTypeCalculator.tryCalculateReturnType(fir)
         // If the expected type is a suspend function type and the current argument of interest is a function reference, we need to do
         // "suspend conversion." Here, during resolution, we bypass constraint system by making resulting type be KSuspendFunction.
         // Then, during conversion, we need to create an adapter function and replace the function reference created here with an adapted
@@ -215,9 +229,8 @@ internal object CheckCallableReferenceExpectedType : CheckerStage() {
         val requireSuspendConversion = expectedType?.isSuspendFunctionType(callInfo.session) == true
         val resultingType: ConeKotlinType = when (fir) {
             is FirFunction -> callInfo.session.createAdaptedKFunctionType(
-                callInfo.session,
-                fir, resultingReceiverType, returnTypeRef,
-                expectedParameterTypes = expectedType?.typeArguments,
+                fir,
+                resultingReceiverType, returnTypeRef, expectedParameterTypes = expectedType?.typeArguments,
                 isSuspend = (fir as? FirSimpleFunction)?.isSuspend == true || requireSuspendConversion,
                 expectedReturnType = extractInputOutputTypesFromCallableReferenceExpectedType(expectedType, callInfo.session)?.outputType
             )
@@ -272,7 +285,6 @@ private fun createKPropertyType(
 }
 
 private fun FirSession.createAdaptedKFunctionType(
-    session: FirSession,
     function: FirFunction<*>,
     receiverType: ConeKotlinType?,
     returnTypeRef: FirResolvedTypeRef,
@@ -326,7 +338,7 @@ private fun FirSession.createAdaptedKFunctionType(
         lastVarargParameter != null
     ) {
         val varargArrayType = lastVarargParameter.returnTypeRef.coneType
-        val varargElementType = varargArrayType.varargElementType(session)
+        val varargElementType = varargArrayType.varargElementType()
         val expectedParameterType = (expectedParameterTypes[parameterTypes.size + shift] as? ConeKotlinTypeProjection)?.type
         // Expect an array or potentially array (i.e., type variable). Pass vararg parameter as-is.
         if (expectedParameterType.isPotentiallyArray()) {
@@ -355,7 +367,7 @@ private fun FirSession.createAdaptedKFunctionType(
 }
 
 internal object DiscriminateSynthetics : CheckerStage() {
-    override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
+    override suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext) {
         if (candidate.symbol is SyntheticSymbol) {
             sink.reportDiagnostic(ResolvedWithLowPriority)
         }
@@ -363,7 +375,7 @@ internal object DiscriminateSynthetics : CheckerStage() {
 }
 
 internal object CheckVisibility : CheckerStage() {
-    override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
+    override suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext) {
         val visibilityChecker = callInfo.session.visibilityChecker
         val symbol = candidate.symbol
         val declaration = symbol.fir
@@ -406,7 +418,7 @@ internal object CheckLowPriorityInOverloadResolution : CheckerStage() {
     private val LOW_PRIORITY_IN_OVERLOAD_RESOLUTION_CLASS_ID: ClassId =
         ClassId(FqName("kotlin.internal"), Name.identifier("LowPriorityInOverloadResolution"))
 
-    override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
+    override suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext) {
         val annotations = when (val fir = candidate.symbol.fir) {
             is FirSimpleFunction -> fir.annotations
             is FirProperty -> fir.annotations
@@ -427,7 +439,7 @@ internal object CheckLowPriorityInOverloadResolution : CheckerStage() {
 internal object PostponedVariablesInitializerResolutionStage : ResolutionStage() {
     val BUILDER_INFERENCE_CLASS_ID: ClassId = ClassId.fromString("kotlin/BuilderInference")
 
-    override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
+    override suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext) {
         val argumentMapping = candidate.argumentMapping ?: return
         // TODO: convert type argument mapping to map [FirTypeParameterSymbol, FirTypedProjection?]
         if (candidate.typeArgumentMapping is TypeArgumentMapping.Mapped) return
