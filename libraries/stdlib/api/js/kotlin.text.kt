@@ -348,6 +348,8 @@ public inline fun kotlin.CharSequence.isEmpty(): kotlin.Boolean
 
 public fun kotlin.Char.isHighSurrogate(): kotlin.Boolean
 
+public fun kotlin.Char.isISOControl(): kotlin.Boolean
+
 public fun kotlin.Char.isLetter(): kotlin.Boolean
 
 public fun kotlin.Char.isLetterOrDigit(): kotlin.Boolean
