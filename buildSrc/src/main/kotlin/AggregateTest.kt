@@ -17,8 +17,8 @@ open class AggregateTest : Test() { // Inherit from Test to see test results in 
 
     init {
         // Set empty FileCollection to avoid NPE when initializing a base 'Test' class
-        classpath = project.objects.fileCollection()
         testClassesDirs = project.objects.fileCollection()
+        classpath = project.objects.fileCollection()
 
         project.gradle.taskGraph.whenReady {
             if (allTasks.filterIsInstance<AggregateTest>().isNotEmpty()) {
