@@ -9,8 +9,8 @@ buildscript {
 
     repositories {
         if (cacheRedirectorEnabled) {
-            maven("https://cache-redirector.jetbrains.com/kotlin.bintray.com/kotlin-dependencies")
             maven("https://cache-redirector.jetbrains.com/jcenter.bintray.com")
+            maven("https://cache-redirector.jetbrains.com/kotlin.bintray.com/kotlin-dependencies")
         } else {
             jcenter()
             maven("https://kotlin.bintray.com/kotlin-dependencies")
