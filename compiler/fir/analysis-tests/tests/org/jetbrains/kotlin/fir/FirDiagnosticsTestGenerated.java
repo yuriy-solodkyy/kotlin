@@ -1091,6 +1091,11 @@ public class FirDiagnosticsTestGenerated extends AbstractFirDiagnosticsTest {
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/qualifiedSupertypeExtendedByOtherSupertype.kt");
         }
 
+        @TestMetadata("readAfterWriteInTry.kt")
+        public void testReadAfterWriteInTry() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/readAfterWriteInTry.kt");
+        }
+
         @TestMetadata("readInLocalClass.kt")
         public void testReadInLocalClass() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/readInLocalClass.kt");

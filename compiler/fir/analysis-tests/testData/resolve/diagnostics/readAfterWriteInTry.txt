@@ -1,0 +1,13 @@
+FILE: readAfterWriteInTry.kt
+    public final fun println(arg: R|kotlin/Int|): R|kotlin/Unit| {
+    }
+    public final fun foo(): R|kotlin/Unit| {
+        lval x: R|kotlin/Int|
+        try {
+            R|<local>/x| = Int(0)
+        }
+        finally {
+        }
+
+        R|/println|(R|<local>/x|)
+    }
