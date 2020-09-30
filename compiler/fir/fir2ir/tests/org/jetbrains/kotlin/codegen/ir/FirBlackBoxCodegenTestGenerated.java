@@ -11838,6 +11838,29 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
         }
     }
 
+    @TestMetadata("compiler/testData/codegen/box/firProblems")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class FirProblems extends AbstractFirBlackBoxCodegenTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_FIR: ");
+        }
+
+        public void testAllFilesPresentInFirProblems() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/firProblems"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+        }
+
+        @TestMetadata("ClassMapperLite.kt")
+        public void testClassMapperLite() throws Exception {
+            runTest("compiler/testData/codegen/box/firProblems/ClassMapperLite.kt");
+        }
+
+        @TestMetadata("getProgressionLastElement.kt")
+        public void testGetProgressionLastElement() throws Exception {
+            runTest("compiler/testData/codegen/box/firProblems/getProgressionLastElement.kt");
+        }
+    }
+
     @TestMetadata("compiler/testData/codegen/box/fullJdk")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
