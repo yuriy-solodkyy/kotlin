@@ -148,7 +148,7 @@ private class FunctionNVarargBridgeLowering(val context: JvmBackendContext) :
             val clazz = classOrNull?.owner ?: return false
             val name = clazz.name.asString()
             val parent = clazz.parentOrNull
-                ?: throw AssertionError("No parent for class $name in FunctionNVarargBridgeLowering; type ${render()}")
+                ?: throw AssertionError("No parent for class $name in FunctionNVarargBridgeLowering")
             val fqName = parent.safeAs<IrPackageFragment>()?.fqName ?: return false
             return when {
                 name.startsWith("Function") ->
