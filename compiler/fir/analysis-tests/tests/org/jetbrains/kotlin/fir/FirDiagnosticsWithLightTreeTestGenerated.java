@@ -932,6 +932,11 @@ public class FirDiagnosticsWithLightTreeTestGenerated extends AbstractFirDiagnos
             KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
         }
 
+        @TestMetadata("abstractFakeSuperCall.kt")
+        public void testAbstractFakeSuperCall() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/abstractFakeSuperCall.kt");
+        }
+
         @TestMetadata("abstractSuperCall.kt")
         public void testAbstractSuperCall() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/abstractSuperCall.kt");
