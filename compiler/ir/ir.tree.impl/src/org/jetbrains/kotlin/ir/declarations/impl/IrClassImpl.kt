@@ -49,7 +49,18 @@ class IrClassImpl(
     override val factory: IrFactory
         get() = IrFactoryImpl
 
-    override lateinit var parent: IrDeclarationParent
+    private var _parent: IrDeclarationParent? = null
+
+    override val parentOrNull: IrDeclarationParent?
+        get() = _parent
+
+    override var parent: IrDeclarationParent
+        get() = _parent
+            ?: throw AssertionError()
+        set(value) {
+            _parent = value
+        }
+
     override var annotations: List<IrConstructorCall> = emptyList()
 
     @ObsoleteDescriptorBasedAPI

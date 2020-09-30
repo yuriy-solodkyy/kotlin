@@ -51,6 +51,8 @@ abstract class IrClass :
 
     abstract var thisReceiver: IrValueParameter?
 
+    open val parentOrNull: IrDeclarationParent? get() = parent
+
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =
         visitor.visitClass(this, data)
 
