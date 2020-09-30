@@ -628,7 +628,13 @@ class ExpressionCodegen(
         }
 
         val ownerType = expression.superQualifierSymbol?.let { typeMapper.mapClass(it.owner) }
-            ?: receiverType ?: typeMapper.mapClass(callee.parentAsClass)
+            ?: receiverType ?: run {
+                val parent = callee.parent
+                if (parent !is IrClass) {
+                    throw AssertionError("Field parent isn't a class: ${callee.name} ${parent.render()}")
+                }
+                typeMapper.mapClass(callee.parentAsClass)
+            }
         val ownerName = ownerType.internalName
         val fieldName = callee.name.asString()
         val fieldType = callee.type.asmType
