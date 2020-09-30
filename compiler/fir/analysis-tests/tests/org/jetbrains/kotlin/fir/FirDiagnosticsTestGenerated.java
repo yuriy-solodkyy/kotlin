@@ -1076,6 +1076,11 @@ public class FirDiagnosticsTestGenerated extends AbstractFirDiagnosticsTest {
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/primaryConstructorRequiredForDataClass.kt");
         }
 
+        @TestMetadata("privateInEnumEntry.kt")
+        public void testPrivateInEnumEntry() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/privateInEnumEntry.kt");
+        }
+
         @TestMetadata("projectionsOnNonClassTypeArguments.kt")
         public void testProjectionsOnNonClassTypeArguments() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/projectionsOnNonClassTypeArguments.kt");

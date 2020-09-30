@@ -1,0 +1,27 @@
+FILE: privateInEnumEntry.kt
+    public final enum class SomeEnum : R|kotlin/Enum<SomeEnum>| {
+        private constructor(): R|SomeEnum| {
+            super<R|kotlin/Enum<SomeEnum>|>()
+        }
+
+        public final static enum entry SINGLE: R|SomeEnum| = object : R|SomeEnum| {
+            private constructor(): R|<anonymous>| {
+                super<R|SomeEnum|>()
+            }
+
+            public final fun bar(): R|kotlin/Unit| {
+                this@R|/<anonymous>|.<HIDDEN: /SomeEnum.SINGLE.foo is invisible>#()
+            }
+
+            private final fun foo(): R|kotlin/Unit| {
+            }
+
+        }
+
+        public final static fun values(): R|kotlin/Array<SomeEnum>| {
+        }
+
+        public final static fun valueOf(value: R|kotlin/String|): R|SomeEnum| {
+        }
+
+    }
