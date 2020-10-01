@@ -51,6 +51,11 @@ object JvmBuiltInsSignatures {
                     inJavaLang("Double", "isInfinite()Z", "isNaN()Z") +
                     inJavaLang("Float", "isInfinite()Z", "isNaN()Z") +
 
+                    inJavaLang(
+                        "CharSequence",
+                        "isEmpty()Z"
+                    ) +
+
                     inJavaLang("Enum", "getDeclaringClass()Ljava/lang/Class;", "finalize()V")
         }
 
