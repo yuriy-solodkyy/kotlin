@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
+import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
@@ -27,10 +28,27 @@ internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex 
     override val fields: MutableList<Variable> = mutableListOf()
 
     override var superWrapperClass: Wrapper? = null
-    override val typeArguments: MutableList<Variable> = mutableListOf()
     override var outerClass: Variable? = null
 
     private val receiverClass = irClass.defaultType.getClass(true)
+
+    init {
+        when (val javaClass = value::class.java) {
+            HashMap::class.java -> {
+                val nodeClass = javaClass.declaredClasses.single { it.name.contains("\$Node") }
+                val mutableMap = irClass.superTypes.mapNotNull { it.classOrNull?.owner }.single { it.isInterface }
+                javaClassToIrClass += nodeClass to mutableMap.declarations.filterIsInstance<IrClass>().single()
+            }
+            LinkedHashMap::class.java -> {
+                val entryClass = javaClass.declaredClasses.single { it.name.contains("\$Entry") }
+                val mutableMap = irClass.superTypes.mapNotNull { it.classOrNull?.owner }.single { it.isInterface }
+                javaClassToIrClass += entryClass to mutableMap.declarations.filterIsInstance<IrClass>().single()
+            }
+        }
+        javaClassToIrClass += value::class.java to irClass
+    }
+
+    constructor(value: Any) : this(value, javaClassToIrClass[value::class.java]!!)
 
     override fun getIrFunctionByIrCall(expression: IrCall): IrFunction? = null
 
@@ -64,6 +82,7 @@ internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex 
 
     companion object {
         private val companionObjectValue = mapOf<String, Any>("kotlin.text.Regex\$Companion" to Regex.Companion)
+        private val javaClassToIrClass = mutableMapOf<Class<*>, IrClass>()
 
         fun getReflectionMethod(irFunction: IrFunction): MethodHandle {
             val receiverClass = irFunction.dispatchReceiverParameter!!.type.getClass(asObject = true)
