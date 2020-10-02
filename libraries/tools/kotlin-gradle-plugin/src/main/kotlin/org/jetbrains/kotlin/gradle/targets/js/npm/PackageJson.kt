@@ -9,6 +9,8 @@ import com.google.gson.ExclusionStrategy
 import com.google.gson.FieldAttributes
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import org.gradle.api.GradleException
+import org.gradle.api.tasks.Input
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 import java.io.File
 
@@ -17,7 +19,7 @@ class PackageJson(
     var name: String,
     var version: String
 ) {
-    private val customFields = mutableMapOf<String, Any>()
+    internal val customFields = mutableMapOf<String, Any?>()
 
     val empty: Boolean
         get() = main == null &&
@@ -59,7 +61,19 @@ class PackageJson(
     val bundledDependencies = mutableListOf<String>()
         get() = field ?: mutableListOf()
 
+    fun customField(pair: Pair<String, Any>) {
+        customFields[pair.first] = pair.second
+    }
+
     fun customField(key: String, value: Any) {
+        customFields[key] = value
+    }
+
+    fun customField(key: String, value: Number) {
+        customFields[key] = value
+    }
+
+    fun customField(key: String, value: Boolean) {
         customFields[key] = value
     }
 
@@ -80,6 +94,7 @@ class PackageJson(
     fun saveTo(packageJsonFile: File) {
         val gson = GsonBuilder()
             .setPrettyPrinting()
+            .disableHtmlEscaping()
             .addSerializationExclusionStrategy(
                 object : ExclusionStrategy {
                     override fun shouldSkipField(f: FieldAttributes?): Boolean =
@@ -155,3 +170,5 @@ private fun chooseVersion(oldVersion: String?, newVersion: String): String {
 
     return oldVersion ?: newVersion
 }
+
+internal const val fakePackageJsonValue = "FAKE"
