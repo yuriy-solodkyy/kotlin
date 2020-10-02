@@ -10,6 +10,7 @@ import com.google.gson.FieldAttributes
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import org.gradle.api.GradleException
+import org.gradle.api.tasks.Input
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 import java.io.File
 
@@ -18,7 +19,7 @@ class PackageJson(
     var name: String,
     var version: String
 ) {
-    private val customFields = mutableMapOf<String, Any?>()
+    internal val customFields = mutableMapOf<String, Any?>()
 
     val empty: Boolean
         get() = main == null &&
@@ -176,3 +177,5 @@ private fun chooseVersion(
             """.trimIndent()
         )
 }
+
+internal const val fakePackageJsonValue = "FAKE"
