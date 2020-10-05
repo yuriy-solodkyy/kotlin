@@ -369,7 +369,7 @@ class RenderIrElementVisitor(private val normalizeNames: Boolean = false) : IrEl
                     "name:$name visibility:$visibility modality:$modality " +
                     renderTypeParameters() + " " +
                     renderValueParameterTypes() + " " +
-                    "returnType:${renderReturnType()} " +
+                    "returnType:${returnType.render()} " +
                     renderSimpleFunctionFlags()
         }
 
@@ -789,14 +789,6 @@ private fun IrDeclaration.renderDeclarationParentFqn(sb: StringBuilder) {
         }
     } catch (e: UninitializedPropertyAccessException) {
         sb.append("<uninitialized parent>")
-    }
-}
-
-private fun IrSimpleFunction.renderReturnType(): String {
-    return try {
-        this.returnType.render()
-    } catch (e: IllegalStateException){
-        "<Uninitialized type>"
     }
 }
 
