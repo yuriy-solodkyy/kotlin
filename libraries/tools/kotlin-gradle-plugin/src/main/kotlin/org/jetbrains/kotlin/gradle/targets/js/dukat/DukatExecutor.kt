@@ -59,5 +59,26 @@ class DukatExecutor(
         }
 
         versionFile.writeText(version)
+
+        gradleModelPostProcess()
+    }
+
+    private fun gradleModelPostProcess() {
+        val compilation = npmProject.compilation
+        val project = npmProject.project
+        when (dukatMode) {
+            DukatMode.SOURCE -> compilation.defaultSourceSet.kotlin.srcDir(npmProject.externalsDir)
+            DukatMode.BINARY -> {
+                npmProject.externalsDir
+                    .listFiles()
+                    ?.forEach {
+                        project.dependencies.add(
+                            compilation.compileDependencyConfigurationName,
+                            project.files(it)
+                        )
+                    }
+
+            }
+        }
     }
 }
