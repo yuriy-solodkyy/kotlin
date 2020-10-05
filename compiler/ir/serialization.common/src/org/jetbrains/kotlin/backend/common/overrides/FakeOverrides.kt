@@ -16,6 +16,8 @@
 
 package org.jetbrains.kotlin.backend.common.overrides
 
+import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
+import org.jetbrains.kotlin.backend.common.serialization.GlobalDeclarationTable
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
@@ -30,6 +32,20 @@ import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.render
+
+class FakeOverrideGlobalDeclarationTable(signatureSerializer: IdSignatureSerializer)
+    : GlobalDeclarationTable(signatureSerializer, signatureSerializer.mangler) {
+
+    fun clear() = table.clear()
+}
+class FakeOverrideDeclarationTable(signatureSerializer: IdSignatureSerializer)
+    : DeclarationTable(FakeOverrideGlobalDeclarationTable(signatureSerializer)) {
+
+    fun clear() {
+        this.table.clear()
+        (globalDeclarationTable as FakeOverrideGlobalDeclarationTable).clear()
+    }
+}
 
 interface FakeOverrideClassFilter {
     fun constructFakeOverrides(clazz: IrClass): Boolean
@@ -114,6 +130,7 @@ class FakeOverrideBuilder(
 ) : AbstractFakeOverrideBuilder(symbolTable, signaturer, irBuiltIns, platformSpecificClassFilter) {
 
     val classToBuilder = mutableMapOf<IrClass, FileLocalFakeOverrideBuilder>()
+    val fakeOverrideDeclarationTable = FakeOverrideDeclarationTable(signaturer)
 
     override fun findProperBuilder(clazz: IrClass) =
         classToBuilder[clazz] ?: this

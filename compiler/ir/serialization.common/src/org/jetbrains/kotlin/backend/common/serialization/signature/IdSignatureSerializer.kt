@@ -6,11 +6,11 @@
 package org.jetbrains.kotlin.backend.common.serialization.signature
 
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
-import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.KotlinMangler
+import org.jetbrains.kotlin.ir.util.isOverridableMemberOrAccessor
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
@@ -109,20 +109,6 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
         }
 
         return publicSignatureBuilder.buildSignature(declaration)
-    }
-
-    private fun IrDeclaration.isOverridableMemberOrAccessor(): Boolean {
-        when (this) {
-            is IrSimpleFunction -> if (this.dispatchReceiverParameter == null) return false
-            is IrProperty
-                -> if (this.getter?.dispatchReceiverParameter == null &&
-                       this.setter?.dispatchReceiverParameter == null) return false
-            else -> return false
-        }
-        require(this is IrDeclarationWithVisibility)
-        if (this.visibility == DescriptorVisibilities.PRIVATE) return false
-
-        return true
     }
 
     fun composeFileLocalIdSignature(declaration: IrDeclaration): IdSignature {

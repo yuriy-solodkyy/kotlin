@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.impl.EmptyPackageFragmentDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.builders.TranslationPluginContext
-import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -76,8 +75,6 @@ abstract class KotlinIrLinker(
     abstract val translationPluginContext: TranslationPluginContext?
 
     private val haveSeen = mutableSetOf<IrSymbol>()
-
-    abstract val declarationTable: DeclarationTable
 
     private lateinit var linkerExtensions: Collection<IrDeserializer.IrLinkerExtension>
 
@@ -253,7 +250,7 @@ abstract class KotlinIrLinker(
             !onlyHeaders,
             deserializeFakeOverrides,
             privateMembersHaveSignatures,
-            declarationTable)
+            globalFakeOverrideBuilder.fakeOverrideDeclarationTable)
     {
 
         private var fileLoops = mutableMapOf<Int, IrLoop>()

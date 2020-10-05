@@ -29,7 +29,7 @@ abstract class GlobalDeclarationTable(
     private val mangler: KotlinMangler.IrMangler,
     private val clashTracker: IdSignatureClashTracker
 ) {
-    private val table = mutableMapOf<IrDeclaration, IdSignature>()
+    protected val table = mutableMapOf<IrDeclaration, IdSignature>()
 
     constructor(signaturer: IdSignatureSerializer, mangler: KotlinMangler.IrMangler) :
             this(signaturer, mangler, IdSignatureClashTracker.DEFAULT_TRACKER)
@@ -50,8 +50,8 @@ abstract class GlobalDeclarationTable(
     fun isExportedDeclaration(declaration: IrDeclaration): Boolean = with(mangler) { declaration.isExported() }
 }
 
-open class DeclarationTable(private val globalDeclarationTable: GlobalDeclarationTable) {
-    private val table = mutableMapOf<IrDeclaration, IdSignature>()
+open class DeclarationTable(protected val globalDeclarationTable: GlobalDeclarationTable) {
+    protected val table = mutableMapOf<IrDeclaration, IdSignature>()
     private val signaturer = globalDeclarationTable.signaturer.also {
         it.reset()
         it.table = this

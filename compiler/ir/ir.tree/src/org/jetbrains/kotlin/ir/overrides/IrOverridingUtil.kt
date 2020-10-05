@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.collectAndFilterRealOverrides
+import org.jetbrains.kotlin.ir.util.isOverridableMemberOrAccessor
 import org.jetbrains.kotlin.ir.util.isReal
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.resolve.OverridingUtil.OverrideCompatibilityInfo
@@ -110,7 +111,7 @@ class IrOverridingUtil(
         val allFromSuper = superTypes.flatMap { superType ->
             val superClass = superType.getClass() ?: error("Unexpected super type: $superType")
             superClass.declarations
-                .filter { it is IrOverridableMember}
+                .filter { it.isOverridableMemberOrAccessor() }
                 .map {
                     val overridenMember = it as IrOverridableMember
                     val fakeOverride = fakeOverrideBuilder.fakeOverrideMember(superType, overridenMember, clazz)
