@@ -543,3 +543,18 @@ val IrFunction.originalFunction: IrFunction
 
 val IrProperty.originalProperty: IrProperty
     get() = attributeOwnerId as? IrProperty ?: this
+
+fun IrDeclaration.isOverridableMemberOrAccessor(): Boolean {
+    when (this) {
+        is IrSimpleFunction -> if (this.dispatchReceiverParameter == null) return false
+        is IrProperty
+        -> if (this.getter?.dispatchReceiverParameter == null &&
+            this.setter?.dispatchReceiverParameter == null
+        ) return false
+        else -> return false
+    }
+    require(this is IrDeclarationWithVisibility)
+    if (this.visibility == DescriptorVisibilities.PRIVATE) return false
+
+    return true
+}

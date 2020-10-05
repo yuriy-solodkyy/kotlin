@@ -115,6 +115,7 @@ abstract class IrFileDeserializer(
     protected var deserializeBodies: Boolean,
     private val deserializeFakeOverrides: Boolean,
     private val privateMembersHaveSignatures: Boolean,
+    private val fakeOverrideDeclarationTable: DeclarationTable,
     private val allowErrorNodes: Boolean
 ) {
     protected val irFactory: IrFactory get() = symbolTable.irFactory
@@ -1090,7 +1091,7 @@ abstract class IrFileDeserializer(
                 (descriptor as? WrappedClassDescriptor)?.bind(this)
 
                 // We need class signatures to build private fake override signatures later.
-                declarationTable.assumeDeclarationSignature(this, signature)
+                fakeOverrideDeclarationTable.assumeDeclarationSignature(this, signature)
 
                 fileLocalFakeOverrideBuilder.enqueueClass(this)
             }
