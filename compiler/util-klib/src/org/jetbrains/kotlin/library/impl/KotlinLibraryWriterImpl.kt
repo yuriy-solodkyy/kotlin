@@ -25,8 +25,7 @@ open class BaseWriterImpl(
     builtInsPlatform: BuiltInsPlatform,
     nativeTargets: List<String> = emptyList(),
     val nopack: Boolean = false,
-    val shortName: String? = null,
-    privateMemberSignatures: Boolean
+    val shortName: String? = null
 ) : BaseWriter {
 
     val klibFile = File("${libraryLayout.libDir.path}.$KLIB_FILE_EXTENSION")
@@ -49,7 +48,6 @@ open class BaseWriterImpl(
         }
 
         shortName?.let { manifestProperties.setProperty(KLIB_PROPERTY_SHORT_NAME, it) }
-        manifestProperties.setProperty(KLIB_PROPERTY_IR_PRIVATE_MEMBERS_HAVE_SIGNATURES, "$privateMemberSignatures")
     }
 
     override fun addLinkDependencies(libraries: List<KotlinLibrary>) {
@@ -94,12 +92,11 @@ class KotlinLibraryWriterImpl(
     builtInsPlatform: BuiltInsPlatform,
     nativeTargets: List<String>,
     nopack: Boolean = false,
-    privateMemberSignatures: Boolean,
     shortName: String? = null,
 
     val layout: KotlinLibraryLayoutForWriter = KotlinLibraryLayoutForWriter(libDir),
 
-    val base: BaseWriter = BaseWriterImpl(layout, moduleName, versions, builtInsPlatform, nativeTargets, nopack, shortName, privateMemberSignatures),
+    val base: BaseWriter = BaseWriterImpl(layout, moduleName, versions, builtInsPlatform, nativeTargets, nopack, shortName),
     metadata: MetadataWriter = MetadataWriterImpl(layout),
     ir: IrWriter = IrMonoliticWriterImpl(layout)
 //    ir: IrWriter = IrPerFileWriterImpl(layout)
@@ -118,8 +115,7 @@ fun buildKotlinLibrary(
     manifestProperties: Properties?,
     dataFlowGraph: ByteArray?,
     builtInsPlatform: BuiltInsPlatform,
-    nativeTargets: List<String> = emptyList(),
-    privateMemberSignatures: Boolean
+    nativeTargets: List<String> = emptyList()
 ): KotlinLibraryLayout {
 
     val klibDirectory = File(output)
@@ -132,7 +128,6 @@ fun buildKotlinLibrary(
         builtInsPlatform,
         nativeTargets,
         nopack,
-        privateMemberSignatures,
         layout = layout,
         ir = irWriter
     )
@@ -151,9 +146,9 @@ fun buildKotlinLibrary(
     return library.layout
 }
 
-class KotlinLibraryOnlyIrWriter(output: String, moduleName: String, versions: KotlinLibraryVersioning, platform: BuiltInsPlatform, nativeTargets: List<String>, perFile: Boolean, privateMemberSignatures: Boolean) {
+class KotlinLibraryOnlyIrWriter(output: String, moduleName: String, versions: KotlinLibraryVersioning, platform: BuiltInsPlatform, nativeTargets: List<String>, perFile: Boolean) {
     val outputDir = File(output)
-    val library = createLibrary(perFile, moduleName, versions, platform, nativeTargets, outputDir, privateMemberSignatures)
+    val library = createLibrary(perFile, moduleName, versions, platform, nativeTargets, outputDir)
 
     private fun createLibrary(
         perFile: Boolean,
@@ -161,12 +156,11 @@ class KotlinLibraryOnlyIrWriter(output: String, moduleName: String, versions: Ko
         versions: KotlinLibraryVersioning,
         platform: BuiltInsPlatform,
         nativeTargets: List<String>,
-        directory: File,
-        privateMemberSignatures: Boolean
+        directory: File
     ): KotlinLibraryWriterImpl {
         val layout = KotlinLibraryLayoutForWriter(directory)
         val irWriter = if (perFile) IrPerFileWriterImpl(layout) else IrMonoliticWriterImpl(layout)
-        return KotlinLibraryWriterImpl(directory, moduleName, versions, platform, nativeTargets, nopack = true, privateMemberSignatures = privateMemberSignatures, layout = layout, ir = irWriter)
+        return KotlinLibraryWriterImpl(directory, moduleName, versions, platform, nativeTargets, nopack = true, layout = layout, ir = irWriter)
     }
 
     fun invalidate() {

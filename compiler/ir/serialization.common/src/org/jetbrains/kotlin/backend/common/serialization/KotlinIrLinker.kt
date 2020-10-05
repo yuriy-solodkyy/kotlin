@@ -35,7 +35,6 @@ import org.jetbrains.kotlin.ir.util.NaiveSourceBasedFileEntryImpl
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.library.IrLibrary
 import org.jetbrains.kotlin.library.KotlinLibrary
-import org.jetbrains.kotlin.library.irPrivateMembersHaveSignatures
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.protobuf.CodedInputStream
 import org.jetbrains.kotlin.protobuf.ExtensionRegistryLite.newInstance
@@ -176,7 +175,6 @@ abstract class KotlinIrLinker(
                                       !strategy.needBodies,
                                       strategy.inlineBodies,
                                       deserializeFakeOverrides,
-                                      (klib as? KotlinLibrary)?.irPrivateMembersHaveSignatures ?: true,
                                       moduleDeserializer).apply {
 
                     // Explicitly exported declarations (e.g. top-level initializers) must be deserialized before all other declarations.
@@ -239,7 +237,6 @@ abstract class KotlinIrLinker(
         onlyHeaders: Boolean,
         inlineBodies: Boolean,
         deserializeFakeOverrides: Boolean,
-        privateMembersHaveSignatures: Boolean,
         private val moduleDeserializer: IrModuleDeserializer
     ) :
         FileLocalLinker,
@@ -249,7 +246,6 @@ abstract class KotlinIrLinker(
             symbolTable,
             !onlyHeaders,
             deserializeFakeOverrides,
-            privateMembersHaveSignatures,
             globalFakeOverrideBuilder.fakeOverrideDeclarationTable)
     {
 
@@ -265,7 +261,7 @@ abstract class KotlinIrLinker(
 
         var reversedSignatureIndex = emptyMap<IdSignature, Int>()
 
-        override val fileLocalFakeOverrideBuilder = FileLocalFakeOverrideBuilder(this, globalFakeOverrideBuilder, deserializeFakeOverrides, privateMembersHaveSignatures)
+        override val fileLocalFakeOverrideBuilder = FileLocalFakeOverrideBuilder(this, globalFakeOverrideBuilder, deserializeFakeOverrides)
 
         inner class FileDeserializationState {
             private val reachableTopLevels = LinkedHashSet<IdSignature>()
