@@ -1,6 +1,8 @@
 // MODULE: lib
 // FILE: lib.kt
 
+import kotlin.test.assertEquals
+
 // Private classes
 private open class A {
     public open fun foo1() = "FAIL"
