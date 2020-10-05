@@ -82,7 +82,7 @@ open class DeclarationTable(protected val globalDeclarationTable: GlobalDeclarat
     }
 
     fun assumeDeclarationSignature(declaration: IrDeclaration, signature: IdSignature) {
-        require(table[declaration] == null) { "Declaration table already has signature for ${declaration.render()}" }
+        assert(table[declaration] == null) { "Declaration table already has signature for ${declaration.render()}" }
         table.put(declaration, signature)
     }
 }
