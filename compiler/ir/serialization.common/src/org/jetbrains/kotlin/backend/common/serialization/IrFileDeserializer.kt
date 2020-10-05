@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.ir.descriptors.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.*
+import org.jetbrains.kotlin.ir.symbols.impl.IrPublicSymbolBase
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.*
 import org.jetbrains.kotlin.ir.util.*
@@ -114,7 +115,6 @@ abstract class IrFileDeserializer(
     val symbolTable: SymbolTable,
     protected var deserializeBodies: Boolean,
     private val deserializeFakeOverrides: Boolean,
-    private val privateMembersHaveSignatures: Boolean,
     private val fakeOverrideDeclarationTable: DeclarationTable,
     private val allowErrorNodes: Boolean
 ) {
@@ -1472,7 +1472,6 @@ abstract class IrFileDeserializer(
     private fun isSkippableFakeOverride(proto: ProtoDeclaration, parent: IrClass): Boolean {
         if (deserializeFakeOverrides) return false
         if (!platformFakeOverrideClassFilter.constructFakeOverrides(parent)) return false
-        if (!privateMembersHaveSignatures) return false
 
         val symbol = when (proto.declaratorCase!!) {
             IR_FUNCTION -> deserializeIrSymbol(proto.irFunction.base.base.symbol)
@@ -1480,8 +1479,8 @@ abstract class IrFileDeserializer(
             // Don't consider IR_FIELDS here.
             else -> return false
         }
-        // if (symbol !is IrPublicSymbolBase<*>) return false
-        // if (!symbol.signature.isPublic) return false
+        if (symbol !is IrPublicSymbolBase<*>) return false
+        if (!symbol.signature.isPublic) return false
 
         return when (proto.declaratorCase!!) {
             IR_FUNCTION -> FunctionFlags.decode(proto.irFunction.base.base.flags).isFakeOverride

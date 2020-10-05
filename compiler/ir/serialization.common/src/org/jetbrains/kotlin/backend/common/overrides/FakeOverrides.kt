@@ -59,9 +59,6 @@ interface FileLocalLinker {
 object DefaultFakeOverrideClassFilter : FakeOverrideClassFilter {
     override fun constructFakeOverrides(clazz: IrClass): Boolean = true
 }
-object NegativeFakeOverrideClassFilter : FakeOverrideClassFilter {
-    override fun constructFakeOverrides(clazz: IrClass): Boolean = false
-}
 
 object FakeOverrideControl {
     // If set to true: all fake overrides go to klib serialized IR.
@@ -79,15 +76,8 @@ object FakeOverrideControl {
 class FileLocalFakeOverrideBuilder(
     val fileLocalLinker: FileLocalLinker,
     val globalFakeOverrideBuilder: FakeOverrideBuilder,
-    val deserializeFakeOverrides: Boolean,
-    val privateMembersHaveSignatures: Boolean
+    val deserializeFakeOverrides: Boolean
 ) : AbstractFakeOverrideBuilder(globalFakeOverrideBuilder.symbolTable, globalFakeOverrideBuilder.signaturer, globalFakeOverrideBuilder.irBuiltIns, globalFakeOverrideBuilder.platformSpecificClassFilter) {
-
-    override val compatibilityClassFilter =
-        if (privateMembersHaveSignatures)
-            DefaultFakeOverrideClassFilter
-        else
-            NegativeFakeOverrideClassFilter
 
     override fun enqueueClass(clazz: IrClass) {
         if (!deserializeFakeOverrides) {
@@ -158,7 +148,6 @@ abstract class AbstractFakeOverrideBuilder(
     val platformSpecificClassFilter: FakeOverrideClassFilter = DefaultFakeOverrideClassFilter
 ) : FakeOverrideBuilderStrategy() {
     private val haveFakeOverrides = mutableSetOf<IrClass>()
-    open val compatibilityClassFilter : FakeOverrideClassFilter = DefaultFakeOverrideClassFilter
 
     private val irOverridingUtil = IrOverridingUtil(irBuiltIns, this)
 
@@ -172,7 +161,6 @@ abstract class AbstractFakeOverrideBuilder(
     fun buildFakeOverrideChainsForClass(clazz: IrClass) {
         if (haveFakeOverrides.contains(clazz)) return
         if (!platformSpecificClassFilter.constructFakeOverrides(clazz)/* || !clazz.symbol.isPublicApi*/) return
-        if (!compatibilityClassFilter.constructFakeOverrides(clazz)) return
 
         val superTypes = clazz.superTypes
 

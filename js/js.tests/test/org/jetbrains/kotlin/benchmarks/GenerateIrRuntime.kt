@@ -251,7 +251,7 @@ class GenerateIrRuntime {
 
         val versions = KotlinLibraryVersioning(libraryVersion, compilerVersion, abiVersion, metadataVersion, irVersion)
         val file = createTempFile(directory = workingDir)
-        val writer = KotlinLibraryOnlyIrWriter(file.absolutePath, "", versions, BuiltInsPlatform.JS, emptyList(), false, FakeOverrideControl.privateMemberSignatures)
+        val writer = KotlinLibraryOnlyIrWriter(file.absolutePath, "", versions, BuiltInsPlatform.JS, emptyList(), false)
         val files = fullRuntimeSourceSet
         val analysisResult = doFrontEnd(files)
         val rawModuleFragment = doPsi2Ir(files, analysisResult)
@@ -273,7 +273,7 @@ class GenerateIrRuntime {
 
         val versions = KotlinLibraryVersioning(libraryVersion, compilerVersion, abiVersion, metadataVersion, irVersion)
         val file = createTempFile(directory = workingDir)
-        val writer = KotlinLibraryOnlyIrWriter(file.absolutePath, "", versions, BuiltInsPlatform.JS, emptyList(), true, FakeOverrideControl.privateMemberSignatures)
+        val writer = KotlinLibraryOnlyIrWriter(file.absolutePath, "", versions, BuiltInsPlatform.JS, emptyList(), true)
         val files = fullRuntimeSourceSet
         val analysisResult = doFrontEnd(files)
         val rawModuleFragment = doPsi2Ir(files, analysisResult)
