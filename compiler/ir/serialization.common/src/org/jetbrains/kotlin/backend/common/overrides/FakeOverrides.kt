@@ -64,8 +64,6 @@ object FakeOverrideControl {
     // If set to true: all fake overrides go to klib serialized IR.
     // If set to false: eligible fake overrides are not serialized.
     val serializeFakeOverrides: Boolean = true
-    // Non-public api class members have their signatures instead of ordinal numbers for IdSignature.
-    val privateMemberSignatures: Boolean = true
 
     // If set to true: fake overrides are deserialized from klib serialized IR.
     // If set to false: eligible fake overrides are constructed within IR linker.
