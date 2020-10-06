@@ -34,9 +34,6 @@ class KotlinGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     override val targetPlatform: TargetPlatform
         get() = JvmPlatforms.unspecifiedJvmPlatform
 
-    @Suppress("DEPRECATION_ERROR")
-    override fun getTargetPlatform() = JvmPlatforms.CompatJvmPlatform
-
     override val presentableText: String
         get() = KotlinIdeaGradleBundle.message("presentable.text.java.with.gradle")
 

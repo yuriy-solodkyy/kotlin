@@ -72,9 +72,6 @@ open class KotlinJavaModuleConfigurator protected constructor() : KotlinWithLibr
     override val targetPlatform: TargetPlatform
         get() = JvmPlatforms.unspecifiedJvmPlatform
 
-    @Suppress("DEPRECATION_ERROR", "OverridingDeprecatedMember")
-    override fun getTargetPlatform() = JvmPlatforms.CompatJvmPlatform
-
     override fun getLibraryJarDescriptors(sdk: Sdk?): List<LibraryJarDescriptor> {
         val result = mutableListOf(
             LibraryJarDescriptor.RUNTIME_JAR,

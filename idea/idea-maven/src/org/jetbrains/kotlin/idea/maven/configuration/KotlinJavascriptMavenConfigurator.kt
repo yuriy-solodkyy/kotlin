@@ -45,9 +45,6 @@ class KotlinJavascriptMavenConfigurator : KotlinMavenConfigurator(null, false, N
     override val targetPlatform: TargetPlatform
         get() = JsPlatforms.defaultJsPlatform
 
-    @Suppress("DEPRECATION_ERROR")
-    override fun getTargetPlatform() = JsPlatforms.CompatJsPlatform
-
     override fun getMinimumSupportedVersion() = "1.1.0"
 
     companion object {

@@ -50,7 +50,6 @@ import org.jetbrains.kotlin.konan.library.KONAN_STDLIB_NAME
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.DefaultIdeTargetPlatformKindProvider
 import org.jetbrains.kotlin.platform.TargetPlatform
-import org.jetbrains.kotlin.platform.compat.toOldPlatform
 import org.jetbrains.kotlin.platform.idePlatformKind
 import org.jetbrains.kotlin.platform.isCommon
 import org.jetbrains.kotlin.platform.js.isJs
@@ -210,14 +209,6 @@ interface ModuleSourceInfo : IdeaModuleInfo, TrackableModuleInfo {
 
     override val platform: TargetPlatform
         get() = TargetPlatformDetector.getPlatform(module)
-
-    @Suppress("DEPRECATION_ERROR")
-    @Deprecated(
-        message = "This accessor is deprecated and will be removed soon, use API from 'org.jetbrains.kotlin.platform.*' packages instead",
-        replaceWith = ReplaceWith("platform"),
-        level = DeprecationLevel.ERROR
-    )
-    fun getPlatform(): org.jetbrains.kotlin.resolve.TargetPlatform = platform.toOldPlatform()
 
     override val analyzerServices: PlatformDependentAnalyzerServices
         get() = platform.findAnalyzerServices(module.project)

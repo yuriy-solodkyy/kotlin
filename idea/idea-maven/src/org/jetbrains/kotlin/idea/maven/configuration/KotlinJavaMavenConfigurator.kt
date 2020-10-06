@@ -66,9 +66,6 @@ class KotlinJavaMavenConfigurator : KotlinMavenConfigurator(TEST_LIB_ID, false, 
     override val targetPlatform: TargetPlatform
         get() = JvmPlatforms.unspecifiedJvmPlatform
 
-    @Suppress("DEPRECATION_ERROR")
-    override fun getTargetPlatform() = JvmPlatforms.CompatJvmPlatform
-
     companion object {
         private const val NAME = "maven"
         const val TEST_LIB_ID = "kotlin-test"

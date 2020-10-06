@@ -31,9 +31,6 @@ open class KotlinNativeGradleConfigurator : KotlinWithGradleConfigurator() {
 
     override val targetPlatform get() = NativePlatforms.unspecifiedNativePlatform
 
-    @Suppress("DEPRECATION_ERROR")
-    override fun getTargetPlatform() = NativePlatforms.CompatNativePlatform
-
     override val presentableText get() = PRESENTABLE_TEXT
 
     companion object {
