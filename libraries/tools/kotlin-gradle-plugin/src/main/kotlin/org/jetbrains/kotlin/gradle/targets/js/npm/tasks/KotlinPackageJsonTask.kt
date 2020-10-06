@@ -31,11 +31,8 @@ open class KotlinPackageJsonTask : DefaultTask() {
         get() = compilationResolver.packageJsonProducer
 
     @get:Input
-    val packageJsonCustomFields: Map<String, Any?>
-        get() = PackageJson(fakePackageJsonValue, fakePackageJsonValue)
-            .apply {
-                compilation.packageJsonHandlers.forEach { it() }
-            }.customFields
+    val packageJsonCustomFields: List<PackageJson.() -> Unit>
+        get() = compilation.packageJsonHandlers
 
     private fun findDependentTasks(): Collection<Any> =
         producer.internalDependencies.map { dependentResolver ->

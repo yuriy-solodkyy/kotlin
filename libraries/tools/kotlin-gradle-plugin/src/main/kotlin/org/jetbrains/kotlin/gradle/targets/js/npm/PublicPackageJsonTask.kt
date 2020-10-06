@@ -32,11 +32,8 @@ constructor(
         get() = nodeJs.npmResolutionManager.requireInstalled()[project][npmProject.compilation]
 
     @get:Input
-    val packageJsonCustomFields: Map<String, Any?>
-        get() = PackageJson(fakePackageJsonValue, fakePackageJsonValue)
-            .apply {
-                compilation.packageJsonHandlers.forEach { it() }
-            }.customFields
+    val packageJsonCustomFields: List<PackageJson.() -> Unit>
+        get() = compilation.packageJsonHandlers
 
     @get:Nested
     internal val externalDependencies: Collection<NestedNpmDependency>
