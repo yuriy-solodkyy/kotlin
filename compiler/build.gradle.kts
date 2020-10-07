@@ -6,6 +6,8 @@ plugins {
     id("jps-compatible")
 }
 
+apply(from = "$rootDir/gradle/testDistribution.gradle.kts")
+
 val compilerModules: Array<String> by rootProject.extra
 val otherCompilerModules = compilerModules.filter { it != path }
 
@@ -72,6 +74,8 @@ dependencies {
 
     antLauncherJar(commonDep("org.apache.ant", "ant"))
     antLauncherJar(toolsJar())
+
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.6.2")
 }
 
 sourceSets {
@@ -83,9 +87,19 @@ sourceSets {
 
 projectTest(parallel = true) {
     dependsOn(":dist")
-
     workingDir = rootDir
+
+    dependsOn(antLauncherJar)
+    inputs.files(antLauncherJar)
+
+    inputs.dir(rootDir.resolve("compiler/cli/cli-common/resources")) // compiler.xml
+
+    inputs.dir(rootDir.resolve("dist"))
+    inputs.dir(rootDir.resolve("compiler/testData"))
+    inputs.dir(rootDir.resolve("third-party"))
+
     systemProperty("kotlin.test.script.classpath", testSourceSet.output.classesDirs.joinToString(File.pathSeparator))
+
     doFirst {
         systemProperty("kotlin.ant.classpath", antLauncherJar.asPath)
         systemProperty("kotlin.ant.launcher.class", "org.apache.tools.ant.Main")
