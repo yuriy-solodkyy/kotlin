@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.gradle
 
+import org.jetbrains.kotlin.gradle.targets.js.dukat.DukatMode
 import org.jetbrains.kotlin.gradle.util.modify
 import org.junit.Test
 import kotlin.test.assertTrue
@@ -101,6 +102,9 @@ class DukatIntegrationIT : BaseGradleIT() {
         )
         project.setupWorkingDir()
         project.gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
+        project.gradleProperties().modify {
+            "${DukatMode.dukatModeProperty}=${DukatMode.SOURCE}"
+        }
 
         val externalSrcs = "build/externals/$projectName/src"
         project.build("generateExternalsIntegrated") {
@@ -153,6 +157,9 @@ class DukatIntegrationIT : BaseGradleIT() {
         )
         project.setupWorkingDir()
         project.gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
+        project.gradleProperties().modify {
+            "${DukatMode.dukatModeProperty}=${DukatMode.SOURCE}"
+        }
 
         val externalSrcs = "build/externals/$projectName/src"
         project.build("generateExternalsIntegrated") {
@@ -224,7 +231,10 @@ class DukatIntegrationIT : BaseGradleIT() {
         project.setupWorkingDir()
         project.gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
         project.gradleProperties().modify {
-            "kotlin.js.generate.externals=true"
+            """
+                kotlin.js.generate.externals=true
+                ${DukatMode.dukatModeProperty}=${DukatMode.SOURCE}
+            """.trimIndent()
         }
 
         project.gradleBuildScript().modify { buildScript ->
@@ -251,18 +261,21 @@ class DukatIntegrationIT : BaseGradleIT() {
         )
         project.setupWorkingDir()
         project.gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
+        project.gradleProperties().modify {
+            "${DukatMode.dukatModeProperty}=${DukatMode.SOURCE}"
+        }
 
-        val externalSrcs = "build/externals/both-jsLegacy/src"
-        project.build("compileKotlinJsIr") {
+        val externalSrcs = "build/externals/both-jsIr/src"
+        project.build("compileKotlinJsLegacy") {
             assertSuccessful()
-            assertTasksExecuted(":legacyGenerateExternalsIntegrated")
+            assertTasksExecuted(":irGenerateExternalsIntegrated")
 
             assertSingleFileExists(externalSrcs, "index.module_decamelize.kt")
-            val irExternals = "build/externals/both-jsIr/src"
-            val directoryFile = fileInWorkingDir(irExternals)
+            val legacyExternals = "build/externals/both-jsLegacy/src"
+            val directoryFile = fileInWorkingDir(legacyExternals)
             assertTrue(
                 !directoryFile.exists(),
-                "[$irExternals] should not contain files"
+                "[$legacyExternals] should not contain files"
             )
         }
 
@@ -271,7 +284,7 @@ class DukatIntegrationIT : BaseGradleIT() {
             "--rerun-tasks"
         ) {
             assertSuccessful()
-            assertTasksExecuted(":legacyGenerateExternalsIntegrated")
+            assertTasksExecuted(":irGenerateExternalsIntegrated")
 
             assertSingleFileExists(externalSrcs, "index.module_decamelize.kt")
         }

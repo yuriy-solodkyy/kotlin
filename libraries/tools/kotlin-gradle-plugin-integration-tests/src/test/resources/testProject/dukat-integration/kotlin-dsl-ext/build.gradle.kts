@@ -1,5 +1,5 @@
 plugins {
-    kotlin("js") version "<pluginMarkerVersion>"
+    kotlin("js") version "1.4.255-SNAPSHOT"
 }
 
 repositories {
@@ -9,6 +9,7 @@ repositories {
 
 kotlin {
     js {
+        useCommonJs()
         nodejs()
     }
 
