@@ -320,6 +320,82 @@ class DukatIntegrationIT : BaseGradleIT() {
         }
     }
 
+    @Test
+    fun testAssembleBothBinaries() {
+        val projectName = "both"
+        val project = Project(
+            projectName = projectName,
+            directoryPrefix = "dukat-integration"
+        )
+        project.setupWorkingDir()
+        project.gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
+
+        project.build("assemble") {
+            assertSuccessful()
+        }
+    }
+
+    @Test
+    fun testCompileLegacyBothBinaries() {
+        val projectName = "both"
+        val project = Project(
+            projectName = projectName,
+            directoryPrefix = "dukat-integration"
+        )
+        project.setupWorkingDir()
+        project.gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
+        project.gradleProperties().modify {
+            """
+                ${DukatMode.dukatModeProperty}=${DukatMode.BINARY}
+            """.trimIndent()
+        }
+
+        val externalSrcs = "build/externals/both-jsLegacy/src"
+        project.build("compileKotlinJsLegacy") {
+            assertSuccessful()
+
+            assertSingleFileExists(externalSrcs, "index.d.jar")
+
+            val irExternals = "build/externals/both-jsIr/src"
+            val directoryFile = fileInWorkingDir(irExternals)
+            assertTrue(
+                !directoryFile.exists(),
+                "[$irExternals] should not contain files"
+            )
+        }
+    }
+
+    @Test
+    fun testAssembleBothSource() {
+        val projectName = "both"
+        val project = Project(
+            projectName = projectName,
+            directoryPrefix = "dukat-integration"
+        )
+        project.setupWorkingDir()
+        project.gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
+        project.gradleProperties().modify {
+            """
+                ${DukatMode.dukatModeProperty}=${DukatMode.SOURCE}
+            """.trimIndent()
+        }
+
+        val externalSrcs = "build/externals/both-jsIr/src"
+        project.build("assemble") {
+            assertSuccessful()
+
+            assertTasksExecuted(":irGenerateExternalsIntegrated")
+
+            assertSingleFileExists(externalSrcs, "index.module_decamelize.kt")
+            val legacyExternals = "build/externals/both-jsLegacy/src"
+            val directoryFile = fileInWorkingDir(legacyExternals)
+            assertTrue(
+                !directoryFile.exists(),
+                "[$legacyExternals] should not contain files"
+            )
+        }
+    }
+
     private fun projectName(
         dslType: DslType,
         dependenciesLocation: DependenciesLocation
