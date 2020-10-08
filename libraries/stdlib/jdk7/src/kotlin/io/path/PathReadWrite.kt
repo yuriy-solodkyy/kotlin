@@ -29,7 +29,7 @@ public inline fun Path.reader(charset: Charset = Charsets.UTF_8, vararg options:
 /**
  * Returns a new [BufferedReader] for reading the content of this file.
  *
- * @param charset character set to use.
+ * @param charset character set to use, UTF-8 by default..
  * @param bufferSize necessary size of the buffer.
  * @param options options to determine how the file is opened
  */
@@ -57,7 +57,7 @@ public inline fun Path.writer(charset: Charset = Charsets.UTF_8, vararg options:
 /**
  * Returns a new [BufferedWriter] for writing the content of this file.
  *
- * @param charset character set to use.
+ * @param charset character set to use, UTF-8 by default..
  * @param bufferSize necessary size of the buffer.
  * @param options options to determine how the file is opened.
  */
@@ -110,8 +110,8 @@ public inline fun Path.writeBytes(array: ByteArray, vararg options: OpenOption):
 @SinceKotlin("1.4")
 @ExperimentalPathApi
 @kotlin.internal.InlineOnly
-public inline fun Path.appendBytes(array: ByteArray): Unit {
-    writeBytes(array, StandardOpenOption.APPEND)
+public inline fun Path.appendBytes(array: ByteArray) {
+    Files.write(this, array, StandardOpenOption.APPEND)
 }
 
 /**
@@ -119,12 +119,14 @@ public inline fun Path.appendBytes(array: ByteArray): Unit {
  *
  * This method is not recommended on huge files. It has an internal limitation of 2 GB file size.
  *
- * @param charset character set to use.
+ * @param charset character set to use, UTF-8 by default.
  * @return the entire content of this file as a String.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
-public fun Path.readText(charset: Charset = Charsets.UTF_8): String = readBytes().toString(charset)
+@kotlin.internal.InlineOnly
+public inline fun Path.readText(charset: Charset = Charsets.UTF_8): String =
+    readBytes().toString(charset)
 
 /**
  * Sets the content of this file as [text] encoded using UTF-8 or specified [charset].
@@ -145,7 +147,7 @@ public fun Path.writeText(text: String, charset: Charset = Charsets.UTF_8, varar
  * Appends [text] to the content of this file using UTF-8 or the specified [charset].
  *
  * @param text text to append to file.
- * @param charset character set to use.
+ * @param charset character set to use, UTF-8 by default.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
@@ -160,7 +162,7 @@ public fun Path.appendText(text: String, charset: Charset = Charsets.UTF_8): Uni
  * You may use this function on huge files.
  *
  * @param options options to determine how the file is opened.
- * @param charset character set to use.
+ * @param charset character set to use, UTF-8 by default.
  * @param action function to process file lines.
  */
 @SinceKotlin("1.4")
@@ -203,7 +205,7 @@ public inline fun Path.outputStream(vararg options: OpenOption): OutputStream {
  *
  * Do not use this function for huge files.
  *
- * @param charset character set to use. By default uses UTF-8 charset.
+ * @param charset character set to use, UTF-8 by default.
  * @return list of file lines.
  */
 @SinceKotlin("1.4")
@@ -217,7 +219,7 @@ public inline fun Path.readLines(charset: Charset = Charsets.UTF_8): List<String
  * Calls the [block] callback giving it a sequence of all the lines in this file and closes the reader once
  * the processing is complete.
 
- * @param charset character set to use. By default uses UTF-8 charset.
+ * @param charset character set to use, UTF-8 by default.
  * @return the value returned by [block].
  */
 @SinceKotlin("1.4")
@@ -226,3 +228,59 @@ public inline fun Path.readLines(charset: Charset = Charsets.UTF_8): List<String
 public inline fun <T> Path.useLines(charset: Charset = Charsets.UTF_8, block: (Sequence<String>) -> T): T {
     return bufferedReader(charset).use { block(it.lineSequence()) }
 }
+
+/**
+ * Write the specified collection of char sequences [lines] to a file terminating each one with the platform's line separator.
+ *
+ * By default, the file will be overwritten if it already exists, but you can control this behavior
+ * with [options].
+ *
+ * @param charset character set to use, UTF-8 by default.
+ */
+@SinceKotlin("1.4")
+@ExperimentalPathApi
+@kotlin.internal.InlineOnly
+public inline fun Path.writeLines(lines: Iterable<CharSequence>, charset: Charset = Charsets.UTF_8, vararg options: OpenOption): Path {
+    return Files.write(this, lines, charset, *options)
+}
+
+/**
+ * Write the specified sequence of char sequences [lines] to a file terminating each one with the platform's line separator.
+ *
+ * By default, the file will be overwritten if it already exists, but you can control this behavior
+ * with [options].
+ *
+ * @param charset character set to use, UTF-8 by default.
+ */
+@SinceKotlin("1.4")
+@ExperimentalPathApi
+@kotlin.internal.InlineOnly
+public inline fun Path.writeLines(lines: Sequence<CharSequence>, charset: Charset = Charsets.UTF_8, vararg options: OpenOption): Path {
+    return Files.write(this, lines.asIterable(), charset, *options)
+}
+
+/**
+ * Appends the specified collection of char sequences [lines] to a file terminating each one with the platform's line separator.
+ *
+ * @param charset character set to use, UTF-8 by default.
+ */
+@SinceKotlin("1.4")
+@ExperimentalPathApi
+@kotlin.internal.InlineOnly
+public inline fun Path.appendLines(lines: Iterable<CharSequence>, charset: Charset = Charsets.UTF_8): Path {
+    return Files.write(this, lines, charset, StandardOpenOption.APPEND)
+}
+
+/**
+ * Appends the specified sequence of char sequences [lines] to a file terminating each one with the platform's line separator.
+ *
+ * @param charset character set to use, UTF-8 by default.
+ */
+@SinceKotlin("1.4")
+@ExperimentalPathApi
+@kotlin.internal.InlineOnly
+public inline fun Path.appendLines(lines: Sequence<CharSequence>, charset: Charset = Charsets.UTF_8): Path {
+    return Files.write(this, lines.asIterable(), charset, StandardOpenOption.APPEND)
+}
+
+
