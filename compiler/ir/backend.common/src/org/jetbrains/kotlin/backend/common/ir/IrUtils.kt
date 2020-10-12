@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
-import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.builders.Scope
@@ -440,20 +439,15 @@ val IrFunction.allParameters: List<IrValueParameter>
         explicitParameters
     }
 
-private object FakeOverrideBuilder : FakeOverrideBuilderStrategy() {
-    override fun linkFakeOverride(fakeOverride: IrOverridableMember) {
-        when (fakeOverride) {
-            is IrFakeOverrideFunction -> linkFunctionFakeOverride(fakeOverride)
-            is IrFakeOverrideProperty -> linkPropertyFakeOverride(fakeOverride)
-            else -> error("Unexpected fake override: $fakeOverride")
-        }
-    }
+// This is essentially the same as FakeOverrideBuilder,
+// but it bypasses SymbolTable.
+private object FakeOverrideBuilderForLowerings : FakeOverrideBuilderStrategy() {
 
-    private fun linkFunctionFakeOverride(declaration: IrFakeOverrideFunction) {
+    override fun linkFunctionFakeOverride(declaration: IrFakeOverrideFunction) {
         declaration.acquireSymbol(IrSimpleFunctionSymbolImpl(WrappedSimpleFunctionDescriptor()))
     }
 
-    private fun linkPropertyFakeOverride(declaration: IrFakeOverrideProperty) {
+    override fun linkPropertyFakeOverride(declaration: IrFakeOverrideProperty) {
         val propertySymbol = IrPropertySymbolImpl(WrappedPropertyDescriptor())
         declaration.getter?.let { it.correspondingPropertySymbol = propertySymbol }
         declaration.setter?.let { it.correspondingPropertySymbol = propertySymbol }
@@ -472,7 +466,7 @@ private object FakeOverrideBuilder : FakeOverrideBuilderStrategy() {
 }
 
 fun IrClass.addFakeOverrides(irBuiltIns: IrBuiltIns, implementedMembers: List<IrOverridableMember> = emptyList()) {
-    IrOverridingUtil(irBuiltIns, FakeOverrideBuilder)
+    IrOverridingUtil(irBuiltIns, FakeOverrideBuilderForLowerings)
         .buildFakeOverridesForClassUsingOverriddenSymbols(this, implementedMembers)
         .forEach { addChild(it) }
 }

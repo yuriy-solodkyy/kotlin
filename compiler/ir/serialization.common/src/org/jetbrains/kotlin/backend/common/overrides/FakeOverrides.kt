@@ -31,7 +31,6 @@ import org.jetbrains.kotlin.ir.symbols.impl.IrPropertySymbolImpl
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.SymbolTable
-import org.jetbrains.kotlin.ir.util.render
 
 class FakeOverrideGlobalDeclarationTable(signatureSerializer: IdSignatureSerializer)
     : GlobalDeclarationTable(signatureSerializer, signatureSerializer.mangler) {
@@ -48,7 +47,7 @@ class FakeOverrideDeclarationTable(signatureSerializer: IdSignatureSerializer)
 }
 
 interface FakeOverrideClassFilter {
-    fun constructFakeOverrides(clazz: IrClass): Boolean
+    fun needToConstructFakeOverrides(clazz: IrClass): Boolean
 }
 
 interface FileLocalLinker {
@@ -57,7 +56,7 @@ interface FileLocalLinker {
 }
 
 object DefaultFakeOverrideClassFilter : FakeOverrideClassFilter {
-    override fun constructFakeOverrides(clazz: IrClass): Boolean = true
+    override fun needToConstructFakeOverrides(clazz: IrClass): Boolean = true
 }
 
 object FakeOverrideControl {
@@ -158,7 +157,7 @@ abstract class AbstractFakeOverrideBuilder(
 
     fun buildFakeOverrideChainsForClass(clazz: IrClass) {
         if (haveFakeOverrides.contains(clazz)) return
-        if (!platformSpecificClassFilter.constructFakeOverrides(clazz)/* || !clazz.symbol.isPublicApi*/) return
+        if (!platformSpecificClassFilter.needToConstructFakeOverrides(clazz)/* || !clazz.symbol.isPublicApi*/) return
 
         val superTypes = clazz.superTypes
 
@@ -185,24 +184,16 @@ abstract class AbstractFakeOverrideBuilder(
         irOverridingUtil.buildFakeOverridesForClass(clazz)
     }
 
-    override fun linkFakeOverride(fakeOverride: IrOverridableMember) {
-        when (fakeOverride) {
-            is IrFakeOverrideFunction -> linkFunctionFakeOverride(fakeOverride)
-            is IrFakeOverrideProperty -> linkPropertyFakeOverride(fakeOverride)
-            else -> error("Unexpected fake override: $fakeOverride")
-        }
-    }
-
     abstract fun composeSignature(declaration: IrDeclaration): IdSignature
     abstract fun declareFunctionFakeOverride(declaration: IrFakeOverrideFunction, signature: IdSignature)
     abstract fun declarePropertyFakeOverride(declaration: IrFakeOverrideProperty, signature: IdSignature)
 
-    protected fun linkFunctionFakeOverride(declaration: IrFakeOverrideFunction) {
+    override fun linkFunctionFakeOverride(declaration: IrFakeOverrideFunction) {
         val signature = composeSignature(declaration)
         declareFunctionFakeOverride(declaration, signature)
     }
 
-    protected fun linkPropertyFakeOverride(declaration: IrFakeOverrideProperty) {
+    override fun linkPropertyFakeOverride(declaration: IrFakeOverrideProperty) {
         // To compute a signature for a property with type parameters,
         // we must have its accessor's correspondingProperty pointing to the property's symbol.
         // See IrMangleComputer.mangleTypeParameterReference() for details.
