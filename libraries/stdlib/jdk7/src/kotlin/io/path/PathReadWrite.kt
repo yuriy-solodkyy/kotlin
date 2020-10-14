@@ -23,7 +23,7 @@ import java.nio.file.StandardOpenOption
 @ExperimentalPathApi
 @kotlin.internal.InlineOnly
 public inline fun Path.reader(charset: Charset = Charsets.UTF_8, vararg options: OpenOption): InputStreamReader {
-    return inputStream(*options).reader(charset)
+    return Files.newInputStream(this, *options).reader(charset)
 }
 
 /**
@@ -41,7 +41,7 @@ public inline fun Path.bufferedReader(
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
     vararg options: OpenOption
 ): BufferedReader {
-    return reader(charset, *options).buffered(bufferSize)
+    return Files.newInputStream(this, *options).reader(charset).buffered(bufferSize)
 }
 
 /**
@@ -51,7 +51,7 @@ public inline fun Path.bufferedReader(
 @ExperimentalPathApi
 @kotlin.internal.InlineOnly
 public inline fun Path.writer(charset: Charset = Charsets.UTF_8, vararg options: OpenOption): OutputStreamWriter {
-    return outputStream(*options).writer(charset)
+    return Files.newOutputStream(this, *options).writer(charset)
 }
 
 /**
@@ -69,7 +69,7 @@ public inline fun Path.bufferedWriter(
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
     vararg options: OpenOption
 ): BufferedWriter {
-    return writer(charset, *options).buffered(bufferSize)
+    return Files.newOutputStream(this, *options).writer(charset).buffered(bufferSize)
 }
 
 /**
@@ -126,7 +126,7 @@ public inline fun Path.appendBytes(array: ByteArray) {
 @ExperimentalPathApi
 @kotlin.internal.InlineOnly
 public inline fun Path.readText(charset: Charset = Charsets.UTF_8): String =
-    readBytes().toString(charset)
+    reader(charset).readText()
 
 /**
  * Sets the content of this file as [text] encoded using UTF-8 or specified [charset].
@@ -139,8 +139,8 @@ public inline fun Path.readText(charset: Charset = Charsets.UTF_8): String =
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
-public fun Path.writeText(text: String, charset: Charset = Charsets.UTF_8, vararg options: OpenOption): Unit {
-    writeBytes(text.toByteArray(charset), *options)
+public fun Path.writeText(text: String, charset: Charset = Charsets.UTF_8, vararg options: OpenOption) {
+    Files.newOutputStream(this, *options).writer(charset).use { it.write(text) }
 }
 
 /**
@@ -151,8 +151,8 @@ public fun Path.writeText(text: String, charset: Charset = Charsets.UTF_8, varar
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
-public fun Path.appendText(text: String, charset: Charset = Charsets.UTF_8): Unit {
-    writeText(text, charset, StandardOpenOption.APPEND)
+public fun Path.appendText(text: String, charset: Charset = Charsets.UTF_8) {
+    Files.newOutputStream(this, StandardOpenOption.APPEND).writer(charset).use { it.write(text) }
 }
 
 /**
@@ -167,9 +167,10 @@ public fun Path.appendText(text: String, charset: Charset = Charsets.UTF_8): Uni
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
-public fun Path.forEachLine(charset: Charset = Charsets.UTF_8, vararg options: OpenOption, action: (line: String) -> Unit): Unit {
-    // Note: close is called at forEachLine
-    bufferedReader(charset, options = options).forEachLine(action)
+@kotlin.internal.InlineOnly
+public inline fun Path.forEachLine(charset: Charset = Charsets.UTF_8, vararg options: OpenOption, action: (line: String) -> Unit): Unit {
+    // cannot use non-inline forEachLine
+    Files.newInputStream(this, *options).reader(charset).buffered().useLines { it.forEach(action) }
 }
 
 /**
@@ -226,7 +227,7 @@ public inline fun Path.readLines(charset: Charset = Charsets.UTF_8): List<String
 @ExperimentalPathApi
 @kotlin.internal.InlineOnly
 public inline fun <T> Path.useLines(charset: Charset = Charsets.UTF_8, block: (Sequence<String>) -> T): T {
-    return bufferedReader(charset).use { block(it.lineSequence()) }
+    return Files.newBufferedReader(this, charset).use { block(it.lineSequence()) }
 }
 
 /**
