@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.fir.references.FirSuperReference
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.calls.getExpectedTypeForSAMConversion
 import org.jetbrains.kotlin.fir.resolve.calls.isFunctional
+import org.jetbrains.kotlin.fir.resolve.fullyExpandedType
 import org.jetbrains.kotlin.fir.resolve.inference.isBuiltinFunctionalType
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.scopes.unsubstitutedScope
@@ -186,7 +187,7 @@ class CallAndReferenceGenerator(
         val superTypeRef = dispatchReceiverReference.superTypeRef
         val coneSuperType = superTypeRef.coneTypeSafe<ConeClassLikeType>()
         if (coneSuperType != null) {
-            val firClassSymbol = coneSuperType.lookupTag.toSymbol(session) as? FirClassSymbol<*>
+            val firClassSymbol = coneSuperType.fullyExpandedType(session).lookupTag.toSymbol(session) as? FirClassSymbol<*>
             if (firClassSymbol != null) {
                 return classifierStorage.getIrClassSymbol(firClassSymbol)
             }
