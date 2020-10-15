@@ -50,7 +50,10 @@ abstract class AbstractConeSubstitutor : ConeSubstitutor() {
             is ConeClassErrorType -> return null
             is ConeClassLikeType -> this.substituteArguments()
             is ConeLookupTagBasedType -> return null
-            is ConeFlexibleType -> this.substituteBounds()
+            is ConeFlexibleType -> this.substituteBounds()?.let {
+                if (it.lowerBound == it.upperBound) it.lowerBound
+                else it
+            }
             is ConeCapturedType -> return null
             is ConeDefinitelyNotNullType -> this.substituteOriginal()
             is ConeIntersectionType -> this.substituteIntersectedTypes()
