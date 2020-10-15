@@ -5,4 +5,4 @@
 
 package org.jetbrains.kotlin.gradle
 
-fun KaptImportingTest.isAndroidStudio() = false
+fun KaptImportingTest.isAndroidStudio() = true

@@ -29,6 +29,7 @@ import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 import org.jetbrains.jps.model.module.JpsTypedModuleSourceRoot
 import org.jetbrains.jps.model.serialization.facet.JpsFacetSerializer
+import org.jetbrains.jps.model.serialization.library.JpsLibraryTableSerializer
 import org.jetbrains.jps.model.serialization.module.JpsModuleRootModelSerializer.*
 import org.jetbrains.kotlin.config.getFacetPlatformByConfigurationElement
 import org.jetbrains.kotlin.idea.KotlinBundle
@@ -107,7 +108,7 @@ class KotlinNonJvmSourceRootConverterProvider : ConverterProvider("kotlin-non-jv
 
     class ConverterImpl(private val context: ConversionContext) : ProjectConverter() {
         private val projectLibrariesByName by lazy {
-            context.projectLibrariesSettings.projectLibraries.groupBy { it.getAttributeValue(LibraryImpl.LIBRARY_NAME_ATTR) }
+            context.projectLibrariesSettings.projectLibraries.groupBy { it.getAttributeValue(JpsLibraryTableSerializer.NAME_ATTRIBUTE) }
         }
 
         private fun findGlobalLibrary(name: String) = ApplicationLibraryTable.getApplicationTable().getLibraryByName(name)
