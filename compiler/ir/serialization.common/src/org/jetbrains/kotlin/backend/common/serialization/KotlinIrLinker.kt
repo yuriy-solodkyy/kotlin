@@ -238,7 +238,7 @@ abstract class KotlinIrLinker(
         inlineBodies: Boolean,
         deserializeFakeOverrides: Boolean,
         private val moduleDeserializer: IrModuleDeserializer,
-        allowErrorNodes
+        allowErrorNodes: Boolean
     ) :
         IrFileDeserializer(
             logger,
