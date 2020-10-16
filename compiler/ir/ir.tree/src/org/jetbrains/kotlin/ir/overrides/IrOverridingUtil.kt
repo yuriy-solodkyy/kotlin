@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.collectAndFilterRealOverrides
-import org.jetbrains.kotlin.ir.util.isOverridableMemberOrAccessor
 import org.jetbrains.kotlin.ir.util.isReal
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.resolve.OverridingUtil.OverrideCompatibilityInfo
@@ -743,4 +742,19 @@ class IrOverridingUtil(
             else -> error("Unxpected declaration for value parameter check: $this")
         }
     }
+}
+
+fun IrSimpleFunction.isOverridableFunction(): Boolean =
+    this.visibility != DescriptorVisibilities.PRIVATE &&
+    this.dispatchReceiverParameter != null
+
+fun IrProperty.isOverridableProperty(): Boolean =
+    this.visibility != DescriptorVisibilities.PRIVATE &&
+    (this.getter?.dispatchReceiverParameter != null ||
+     this.setter?.dispatchReceiverParameter != null)
+
+fun IrDeclaration.isOverridableMemberOrAccessor(): Boolean = when(this) {
+    is IrSimpleFunction -> isOverridableFunction()
+    is IrProperty -> isOverridableProperty()
+    else -> false
 }

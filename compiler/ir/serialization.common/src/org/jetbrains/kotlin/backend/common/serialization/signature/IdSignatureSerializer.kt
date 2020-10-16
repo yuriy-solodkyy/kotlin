@@ -6,13 +6,12 @@
 package org.jetbrains.kotlin.backend.common.serialization.signature
 
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
-import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
-import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.overrides.isOverridableFunction
+import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.KotlinMangler
-import org.jetbrains.kotlin.ir.util.isOverridableMemberOrAccessor
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
@@ -132,7 +131,7 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                         ?: composeContainerIdSignature(parent)
                     IdSignature.FileLocalSignature(
                         p,
-                        if (declaration.isOverridableMemberOrAccessor()) {
+                        if (declaration.isOverridableFunction()) {
                             mangler.run { declaration.signatureMangle }
                         } else {
                             ++localIndex
@@ -143,7 +142,7 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
                     val parent = declaration.parent
                     IdSignature.FileLocalSignature(
                         composeContainerIdSignature(parent),
-                        if (declaration.isOverridableMemberOrAccessor()) {
+                        if (declaration.isOverridableProperty()) {
                             mangler.run { declaration.signatureMangle }
                         } else {
                             ++localIndex
