@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.backend.common.serialization.signature
 
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.IdSignature
@@ -23,7 +25,7 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
         } else null
     }
 
-    private fun composeSignatureForDeclaration(declaration: IrDeclaration): IdSignature {
+    fun composeSignatureForDeclaration(declaration: IrDeclaration): IdSignature {
         return if (mangler.run { declaration.isExported() }) {
             composePublicIdSignature(declaration)
         } else composeFileLocalIdSignature(declaration)
@@ -31,6 +33,8 @@ open class IdSignatureSerializer(val mangler: KotlinMangler.IrMangler) : IdSigna
 
     private var localIndex: Long = 0
     private var scopeIndex: Int = 0
+
+    // TODO: we need to disentangle signature construction with declaration tables.
     lateinit var table: DeclarationTable
 
     fun reset() {
