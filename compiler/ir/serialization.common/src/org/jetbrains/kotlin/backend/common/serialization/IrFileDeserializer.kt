@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.backend.common.serialization
 import org.jetbrains.kotlin.backend.common.LoggingContext
 import org.jetbrains.kotlin.backend.common.ir.ir2string
 import org.jetbrains.kotlin.backend.common.lower.InnerClassesSupport
-import org.jetbrains.kotlin.backend.common.overrides.FileLocalFakeOverrideBuilder
+import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideBuilder
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideClassFilter
 import org.jetbrains.kotlin.backend.common.peek
 import org.jetbrains.kotlin.backend.common.pop
@@ -115,7 +115,7 @@ abstract class IrFileDeserializer(
     val symbolTable: SymbolTable,
     protected var deserializeBodies: Boolean,
     private val deserializeFakeOverrides: Boolean,
-    private val fakeOverrideDeclarationTable: DeclarationTable,
+    private val fakeOverrideBuilder: FakeOverrideBuilder,
     private val allowErrorNodes: Boolean
 ) {
     protected val irFactory: IrFactory get() = symbolTable.irFactory
@@ -136,7 +136,6 @@ abstract class IrFileDeserializer(
 
     abstract val deserializeInlineFunctions: Boolean
     abstract val platformFakeOverrideClassFilter: FakeOverrideClassFilter
-    abstract val fileLocalFakeOverrideBuilder: FileLocalFakeOverrideBuilder
 
     fun deserializeFqName(fqn: List<Int>): String =
         fqn.joinToString(".", transform = ::deserializeString)
@@ -1090,10 +1089,7 @@ abstract class IrFileDeserializer(
 
                 (descriptor as? WrappedClassDescriptor)?.bind(this)
 
-                // We need class signatures to build private fake override signatures later.
-                fakeOverrideDeclarationTable.assumeDeclarationSignature(this, signature)
-
-                fileLocalFakeOverrideBuilder.enqueueClass(this)
+                fakeOverrideBuilder.enqueueClass(this, signature)
             }
         }
 

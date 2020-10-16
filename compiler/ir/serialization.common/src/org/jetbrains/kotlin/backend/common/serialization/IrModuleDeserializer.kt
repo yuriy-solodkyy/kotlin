@@ -9,10 +9,7 @@ import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolD
 import org.jetbrains.kotlin.builtins.functions.FunctionClassDescriptor
 import org.jetbrains.kotlin.builtins.functions.FunctionClassKind
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
-import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.IrProperty
-import org.jetbrains.kotlin.ir.declarations.IrSymbolOwner
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.IrAbstractFunctionFactory
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.descriptors.WrappedDeclarationDescriptor
@@ -35,6 +32,12 @@ internal fun IrSymbol.kind(): BinarySymbolData.SymbolKind {
 abstract class IrModuleDeserializer(val moduleDescriptor: ModuleDescriptor) {
     abstract operator fun contains(idSig: IdSignature): Boolean
     abstract fun deserializeIrSymbol(idSig: IdSignature, symbolKind: BinarySymbolData.SymbolKind): IrSymbol
+
+    open fun referenceSimpleFunctionByLocalSignature(file: IrFile, idSignature: IdSignature) : IrSimpleFunctionSymbol =
+        error("Unsupported operation")
+
+    open fun referencePropertyByLocalSignature(file: IrFile, idSignature: IdSignature): IrPropertySymbol =
+        error("Unsupported operation")
 
     open fun declareIrSymbol(symbol: IrSymbol) {
         assert(symbol.isPublicApi) { "Symbol is not public API: ${symbol.descriptor}" }
@@ -93,6 +96,12 @@ class IrModuleDeserializerWithBuiltIns(
 
         return checkIsFunctionInterface(idSig) || idSig in delegate
     }
+
+    override fun referenceSimpleFunctionByLocalSignature(file: IrFile, idSignature: IdSignature) : IrSimpleFunctionSymbol =
+        delegate.referenceSimpleFunctionByLocalSignature(file, idSignature)
+
+    override fun referencePropertyByLocalSignature(file: IrFile, idSignature: IdSignature): IrPropertySymbol =
+        delegate.referencePropertyByLocalSignature(file, idSignature)
 
     override fun deserializeReachableDeclarations() {
         delegate.deserializeReachableDeclarations()
@@ -175,10 +184,6 @@ class IrModuleDeserializerWithBuiltIns(
 
     override fun init() {
         delegate.init(this)
-    }
-
-    override fun postProcess() {
-        delegate.postProcess()
     }
 
     override val klib: IrLibrary
