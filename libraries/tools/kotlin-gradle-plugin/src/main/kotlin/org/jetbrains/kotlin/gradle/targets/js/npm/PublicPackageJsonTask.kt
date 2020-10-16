@@ -11,7 +11,6 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
-import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject.Companion.PACKAGE_JSON
 import org.jetbrains.kotlin.gradle.utils.property
 import java.io.File
@@ -39,18 +38,16 @@ constructor(
             }.customFields
 
     @get:Nested
-    internal val externalDependencies: Collection<NestedNpmDependency>
+    internal val externalDependencies: Collection<NpmDependencyDeclaration>
         get() = compilationResolution.externalNpmDependencies
             .map {
-                NestedNpmDependency(
+                NpmDependencyDeclaration(
                     scope = it.scope,
                     name = it.name,
-                    version = it.version
+                    version = it.version,
+                    generateExternals = it.generateExternals
                 )
             }
-
-    private val realExternalDependencies: Collection<NpmDependency>
-        get() = compilationResolution.externalNpmDependencies
 
     @get:OutputFile
     var packageJsonFile: File by property {
@@ -96,12 +93,3 @@ constructor(
         const val NAME = "publicPackageJson"
     }
 }
-
-internal data class NestedNpmDependency(
-    @Input
-    val scope: NpmDependency.Scope,
-    @Input
-    val name: String,
-    @Input
-    val version: String
-)
