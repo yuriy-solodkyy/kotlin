@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.fir.resolve.lookupSuperTypes
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.scopes.FirTypeScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
-import org.jetbrains.kotlin.fir.scopes.impl.FirClassSubstitutionScope
+import org.jetbrains.kotlin.fir.scopes.impl.FirFakeOverrideGenerator
 import org.jetbrains.kotlin.fir.scopes.jvm.computeJvmDescriptorReplacingKotlinToJava
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
 import org.jetbrains.kotlin.fir.symbols.StandardClassIds
@@ -97,7 +97,7 @@ class JavaClassMembersEnhancementScope(
                     return this
                 }
 
-                return FirClassSubstitutionScope.createCopyForFirFunction(
+                return FirFakeOverrideGenerator.createCopyForFirFunction(
                     FirNamedFunctionSymbol(symbol.callableId),
                     this,
                     session,
