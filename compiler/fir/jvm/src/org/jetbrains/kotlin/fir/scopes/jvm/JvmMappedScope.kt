@@ -104,6 +104,9 @@ class JvmMappedScope(
             ).mapTo(this) { arguments -> "java/lang/Throwable.<init>($arguments)V" }
         }
 
+        // Forbidden as already declared in Kotlin (since 1.1)
+        private val forbiddenNames = listOf(Name.identifier("getOrDefault"))
+
         fun prepareSignatures(klass: FirRegularClass): Signatures {
 
             val signaturePrefix = klass.symbol.classId.toString()
@@ -116,6 +119,7 @@ class JvmMappedScope(
             }.forEach {
                 visibleMethodsByName.getOrPut(Name.identifier(it.substringBefore("("))) { mutableSetOf() }.add(it)
             }
+            visibleMethodsByName.keys.removeAll(forbiddenNames)
 
             val hiddenConstructors =
                 (JvmBuiltInsSignatures.HIDDEN_CONSTRUCTOR_SIGNATURES + additionalHiddenConstructors)
