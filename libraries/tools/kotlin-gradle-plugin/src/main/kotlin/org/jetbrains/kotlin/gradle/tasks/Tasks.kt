@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.gradle.tasks
 
+import com.intellij.util.PathUtil
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
@@ -16,10 +17,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.workers.WorkerExecutor
 import org.jetbrains.kotlin.build.DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
-import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments
-import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.compilerRunner.*
 import org.jetbrains.kotlin.compilerRunner.GradleCompilerRunner.Companion.normalizeForFlagFile
 import org.jetbrains.kotlin.daemon.common.MultiModuleICSettings
@@ -578,6 +576,8 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
         sourceRootsContainer.add(*sources)
         return super.source(*sources)
     }
+
+    override fun compilerArgumentsSplitter(): CompilerArgumentsSplitter<K2JVMCompilerArguments> = K2JVMCompilerArgumentsSplitter()
 }
 
 @CacheableTask
@@ -757,4 +757,6 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
         )
         compilerRunner.runJsCompilerAsync(sourceRoots.kotlinSourceFiles, commonSourceSet.toList(), args, environment)
     }
+
+    override fun compilerArgumentsSplitter(): CompilerArgumentsSplitter<K2JSCompilerArguments> = K2JSCompilerArgumentsSplitter()
 }
