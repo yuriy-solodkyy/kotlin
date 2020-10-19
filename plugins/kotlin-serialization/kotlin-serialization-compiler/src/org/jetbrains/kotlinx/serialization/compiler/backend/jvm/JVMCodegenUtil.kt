@@ -109,12 +109,16 @@ fun InstructionAdapter.genKOutputMethodCall(
 }
 
 internal fun InstructionAdapter.buildInternalConstructorDesc(
+    descVar: Int,
     propsStartVar: Int,
     bitMaskBase: Int,
     codegen: ClassBodyCodegen,
     args: List<SerializableProperty>
 ): String {
     val constructorDesc = StringBuilder("(")
+    load(descVar, descType)
+    constructorDesc.append("Lkotlinx/serialization/descriptors/$SERIAL_DESCRIPTOR_CLASS;")
+
     repeat(args.bitMaskSlotCount()) {
         constructorDesc.append("I")
         load(bitMaskBase + it, Type.INT_TYPE)

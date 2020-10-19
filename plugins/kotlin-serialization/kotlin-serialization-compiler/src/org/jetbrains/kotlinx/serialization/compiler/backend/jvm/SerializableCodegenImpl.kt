@@ -31,9 +31,16 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.*
 import org.jetbrains.kotlinx.serialization.compiler.diagnostic.serializableAnnotationIsUseless
 import org.jetbrains.kotlinx.serialization.compiler.resolve.*
+import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIAL_DESCRIPTOR_CLASS
 import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
+
+
+internal const val USE_CHECK_OPTIMIZATION = false
+
+internal const val PLUGIN_UTILS_LIBRARY_CLASS = "PluginUtilsKt"
+internal const val THROW_MISSING_FIELD_EXCEPTION_METHOD = "throwMissingFieldException"
 
 class SerializableCodegenImpl(
     private val classCodegen: ImplementationBodyCodegen
@@ -179,20 +186,29 @@ class SerializableCodegenImpl(
     }
 
     private fun InstructionAdapter.doGenerateConstructorImpl(exprCodegen: ExpressionCodegen) {
-        val seenMask = 1
+        val descVar = 1
+        val seenMask = 2
         val bitMaskOff = fun(it: Int): Int { return seenMask + bitMaskSlotAt(it) }
         val bitMaskEnd = seenMask + properties.serializableProperties.bitMaskSlotCount()
-        var (propIndex, propOffset) = generateSuperSerializableCall(bitMaskEnd)
+
+        if (USE_CHECK_OPTIMIZATION) {
+            generateNewGoldenMaskCheck(descVar, seenMask)
+        }
+
+        var (propIndex, propOffset) = generateSuperSerializableCall(descVar, seenMask, bitMaskEnd)
         for (i in propIndex until properties.serializableProperties.size) {
             val prop = properties[i]
             val propType = prop.asmType
             if (!prop.optional) {
-                // primary were validated before constructor call
-                genValidateProperty(i, bitMaskOff(i))
-                val nonThrowLabel = Label()
-                ificmpne(nonThrowLabel)
-                genMissingFieldExceptionThrow(prop.name)
-                visitLabel(nonThrowLabel)
+                if (!USE_CHECK_OPTIMIZATION) {
+                    // primary were validated before constructor call
+                    genValidateProperty(i, bitMaskOff(i))
+                    val nonThrowLabel = Label()
+                    ificmpne(nonThrowLabel)
+                    genMissingFieldExceptionThrow(prop.name)
+                    visitLabel(nonThrowLabel)
+                }
+
                 // setting field
                 load(0, thisAsmType)
                 load(propOffset, propType)
@@ -237,7 +253,7 @@ class SerializableCodegenImpl(
         areturn(Type.VOID_TYPE)
     }
 
-    private fun InstructionAdapter.generateSuperSerializableCall(propStartVar: Int): Pair<Int, Int> {
+    private fun InstructionAdapter.generateSuperSerializableCall(descVar: Int, maskVar: Int, propStartVar: Int): Pair<Int, Int> {
         val superClass = serializableDescriptor.getSuperClassOrAny()
         val superType = classCodegen.typeMapper.mapType(superClass).internalName
 
@@ -261,10 +277,92 @@ class SerializableCodegenImpl(
             return 0 to propStartVar
         } else {
             val superProps = bindingContext.serializablePropertiesFor(superClass).serializableProperties
-            val creator = buildInternalConstructorDesc(propStartVar, 1, classCodegen, superProps)
+            val creator = buildInternalConstructorDesc(descVar, propStartVar, maskVar, classCodegen, superProps)
             invokespecial(superType, "<init>", creator, false)
             return superProps.size to propStartVar + superProps.sumBy { it.asmType.size }
         }
+    }
+
+    private fun InstructionAdapter.generateNewGoldenMaskCheck(descVar: Int, maskVar: Int) {
+        val allPresentsLabel = Label()
+        val maskSlotCount = properties.serializableProperties.bitMaskSlotCount()
+        if (maskSlotCount == 1) {
+            var goldenMask = 0
+            var requiredBit = 1
+            for (property in properties.serializableProperties) {
+                if (!property.optional) {
+                    goldenMask = goldenMask or requiredBit
+                }
+                requiredBit = requiredBit shl 1
+            }
+
+            iconst(goldenMask)
+            dup()
+            load(maskVar, OPT_MASK_TYPE)
+            and(OPT_MASK_TYPE)
+            ificmpeq(allPresentsLabel)
+
+            load(maskVar, OPT_MASK_TYPE)
+            iconst(goldenMask)
+            load(descVar, descType)
+            invokestatic(
+                "kotlinx/serialization/internal/$PLUGIN_UTILS_LIBRARY_CLASS", THROW_MISSING_FIELD_EXCEPTION_METHOD,
+                "(IILkotlinx/serialization/descriptors/$SERIAL_DESCRIPTOR_CLASS;)V", false
+            )
+        } else {
+            val fieldsMissingLabel = Label()
+
+            val goldenMaskArray = getGoldenMaskArray()
+            for (i in goldenMaskArray.indices) {
+                val goldenMask = goldenMaskArray[i]
+                val maskIndex = maskVar + i
+                iconst(goldenMask)
+                dup()
+                load(maskIndex, OPT_MASK_TYPE)
+                and(OPT_MASK_TYPE)
+                ificmpne(fieldsMissingLabel)
+            }
+            goTo(allPresentsLabel)
+            //prepare seen array
+            visitLabel(fieldsMissingLabel)
+            iconst(maskSlotCount)
+            newarray(OPT_MASK_TYPE)
+            for (i in 0 until maskSlotCount) {
+                dup()
+                iconst(i)
+                load(maskVar + i, Type.INT_TYPE)
+                astore(OPT_MASK_TYPE)
+            }
+            //prepare golden mask array
+            iconst(maskSlotCount)
+            newarray(OPT_MASK_TYPE)
+            for (i in 0 until maskSlotCount) {
+                dup()
+                iconst(i)
+                iconst(goldenMaskArray[i])
+                astore(OPT_MASK_TYPE)
+            }
+            load(descVar, descType)
+            invokestatic(
+                "kotlinx/serialization/internal/$PLUGIN_UTILS_LIBRARY_CLASS", THROW_MISSING_FIELD_EXCEPTION_METHOD,
+                "([I[ILkotlinx/serialization/descriptors/$SERIAL_DESCRIPTOR_CLASS;)V", false
+            )
+        }
+        visitLabel(allPresentsLabel)
+    }
+
+    private fun getGoldenMaskArray(): IntArray {
+        val maskSlotCount = properties.serializableProperties.bitMaskSlotCount()
+        val goldenMaskArray = IntArray(maskSlotCount)
+
+        for (i in properties.serializableProperties.indices) {
+            if (!properties.serializableProperties[i].optional) {
+                val slotNumber = i / 32
+                val bitInSlot = i % 32
+                goldenMaskArray[slotNumber] = goldenMaskArray[slotNumber] or (1 shl bitInSlot)
+            }
+        }
+        return goldenMaskArray;
     }
 
     private fun ExpressionCodegen.genInitProperty(prop: SerializableProperty) = getProp(prop)?.let {
