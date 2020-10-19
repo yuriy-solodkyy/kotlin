@@ -60,7 +60,7 @@ class PathExtensionsTest {
     }
 
     @Test
-    fun testCopyTo() {
+    fun copyTo() {
         val srcFile = createTempFile()
         val dstFile = createTempFile()
         try {
@@ -267,7 +267,7 @@ class PathExtensionsTest {
     }
 
     @Test
-    fun testAttributeGettersOnFile() {
+    fun attributeGettersOnFile() {
         val file = createTempFile("temp", ".file")
         assertTrue(file.exists())
         assertFalse(file.notExists())
@@ -286,7 +286,7 @@ class PathExtensionsTest {
     }
 
     @Test
-    fun testAttributeGettersOnDirectory() {
+    fun attributeGettersOnDirectory() {
         val file = createTempDirectory(".tmpdir")
         assertTrue(file.exists())
         assertFalse(file.notExists())
@@ -303,7 +303,7 @@ class PathExtensionsTest {
     }
 
     @Test
-    fun testAttributeGettersOnNonExistentPath() {
+    fun attributeGettersOnNonExistentPath() {
         val file = createTempDirectory().resolve("foo")
         assertFalse(file.exists())
         assertTrue(file.notExists())
@@ -405,7 +405,7 @@ class PathExtensionsTest {
     }
 
     @Test
-    fun testListDirectoryEntries() {
+    fun directoryEntriesList() {
         val dir = createTempDirectory()
         assertEquals(0, dir.listDirectoryEntries().size)
 
@@ -419,7 +419,7 @@ class PathExtensionsTest {
     }
 
     @Test
-    fun testUseDirectoryEntries() {
+    fun directoryEntriesUseSequence() {
         val dir = createTempDirectory()
         assertEquals(0, dir.useDirectoryEntries { it.toList() }.size)
 
@@ -433,7 +433,7 @@ class PathExtensionsTest {
     }
 
     @Test
-    fun testForEachDirectoryEntry() {
+    fun directoryEntriesForEach() {
         val dir = createTempDirectory()
         dir.forEachDirectoryEntry { error("shouldn't get here, but received $it") }
 

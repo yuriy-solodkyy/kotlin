@@ -13,7 +13,7 @@ import kotlin.test.*
 
 class PathReadWriteTest {
     @Test
-    fun testAppendText() {
+    fun appendText() {
         val file = createTempFile()
         file.writeText("Hello\n")
         file.appendText("World\n")
@@ -73,7 +73,7 @@ class PathReadWriteTest {
     }
 
     @Test
-    fun testBufferedReader() {
+    fun bufferedReader() {
         val file = createTempFile()
         val lines = listOf("line1", "line2")
         file.writeLines(lines)
@@ -83,7 +83,7 @@ class PathReadWriteTest {
     }
 
     @Test
-    fun testBufferedWriter() {
+    fun bufferedWriter() {
         val file = createTempFile()
 
         file.bufferedWriter().use { it.write("line1\n") }
@@ -93,7 +93,7 @@ class PathReadWriteTest {
     }
 
     @Test
-    fun testWriteBytes() {
+    fun writeBytes() {
         val file = createTempFile()
         file.writeBytes("Hello".encodeToByteArray())
         file.appendBytes(" world!".encodeToByteArray())
