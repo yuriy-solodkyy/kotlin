@@ -62,7 +62,7 @@ public val Path.invariantSeparatorsPath: String
  * Note that the [base] path is treated as a directory.
  * If this path matches the [base] path, then a [Path] with an empty path will be returned.
  *
- * @return Path with relative path from [base] to this.
+ * @return the relative path from [base] to this.
  *
  * @throws IllegalArgumentException if this and base paths have different roots.
  */
@@ -80,7 +80,7 @@ public fun Path.relativeTo(base: Path): Path = try {
  * Note that the [base] path is treated as a directory.
  * If this path matches the [base] path, then a [Path] with an empty path will be returned.
  *
- * @return Path with relative path from [base] to this, or `this` if this and base paths have different roots.
+ * @return the relative path from [base] to this, or `this` if this and base paths have different roots.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
@@ -93,7 +93,7 @@ public fun Path.relativeToOrSelf(base: Path): Path =
  * Note that the [base] path is treated as a directory.
  * If this path matches the [base] path, then a [Path] with an empty path will be returned.
  *
- * @return Path with relative path from [base] to this, or `null` if this and base paths have different roots.
+ * @return the relative path from [base] to this, or `null` if this and base paths have different roots.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
@@ -133,7 +133,7 @@ private object PathRelativizer {
 }
 
 /**
- * Copies this path to the given [target] path.
+ * Copies a file or directory located by this path to the given [target] path.
  *
  * Unlike `File.copyTo`, if some directories on a way to the [target] are missing, then they won't be created automatically.
  * You can use the following approach to ensure that required intermediate directories are created:
@@ -169,7 +169,7 @@ public inline fun Path.copyTo(target: Path, overwrite: Boolean = false): Path {
 }
 
 /**
- * Copies this path to the given [target] path.
+ * Copies a file or directory located by this path to the given [target] path.
  *
  * Unlike `File.copyTo`, if some directories on a way to the [target] are missing, then they won't be created automatically.
  * You can use the following approach to ensure that required intermediate directories are created:
@@ -207,7 +207,10 @@ public inline fun Path.copyTo(target: Path, vararg options: CopyOption): Path {
 }
 
 /**
- * Check if this path exists.
+ * Check if the file located by this path exists.
+ *
+ * @return `true`, if the file definitely exists, `false` otherwise,
+ * including situations when the existence cannot be determined.
  *
  * @param options options to control how symbolic links are handled.
  *
@@ -219,7 +222,10 @@ public inline fun Path.copyTo(target: Path, vararg options: CopyOption): Path {
 public inline fun Path.exists(vararg options: LinkOption): Boolean = Files.exists(this, *options)
 
 /**
- * Check if this path does not exist.
+ * Check if the file located by this path does not exist.
+ *
+ * @return `true`, if the file definitely does not exist, `false` otherwise,
+ * including situations when the existence cannot be determined.
  *
  * @param options options to control how symbolic links are handled.
  *
@@ -231,7 +237,7 @@ public inline fun Path.exists(vararg options: LinkOption): Boolean = Files.exist
 public inline fun Path.notExists(vararg options: LinkOption): Boolean = Files.notExists(this, *options)
 
 /**
- * Check if this path is a file.
+ * Check if the file located by this path is a file.
  *
  * @param options options to control how symbolic links are handled.
  *
@@ -243,7 +249,7 @@ public inline fun Path.notExists(vararg options: LinkOption): Boolean = Files.no
 public inline fun Path.isRegularFile(vararg options: LinkOption): Boolean = Files.isRegularFile(this, *options)
 
 /**
- * Check if this path is a directory.
+ * Check if the file located by this path is a directory.
  *
  * By default, symbolic links in the path are followed.
  *
@@ -257,7 +263,7 @@ public inline fun Path.isRegularFile(vararg options: LinkOption): Boolean = File
 public inline fun Path.isDirectory(vararg options: LinkOption): Boolean = Files.isDirectory(this, *options)
 
 /**
- * Check if this path exists and is a symbolic link.
+ * Check if the file located by this path exists and is a symbolic link.
  *
  * @see Files.isSymbolicLink
  */
@@ -267,7 +273,7 @@ public inline fun Path.isDirectory(vararg options: LinkOption): Boolean = Files.
 public inline fun Path.isSymbolicLink(): Boolean = Files.isSymbolicLink(this)
 
 /**
- * Check if this path exists and is executable.
+ * Check if the file located by this path exists and is executable.
  *
  * @see Files.isExecutable
  */
@@ -277,7 +283,7 @@ public inline fun Path.isSymbolicLink(): Boolean = Files.isSymbolicLink(this)
 public inline fun Path.isExecutable(): Boolean = Files.isExecutable(this)
 
 /**
- * Check if this path is considered hidden.
+ * Check if the file located by this path is considered hidden.
  *
  * This check is dependant on the current filesystem. For example, on UNIX-like operating systems, a
  * path is considered hidden if its name begins with a dot. On Windows, file attributes are checked.
@@ -290,7 +296,7 @@ public inline fun Path.isExecutable(): Boolean = Files.isExecutable(this)
 public inline fun Path.isHidden(): Boolean = Files.isHidden(this)
 
 /**
- * Check if this path exists and is readable.
+ * Check if the file located by this path exists and is readable.
  *
  * @see Files.isReadable
  */
@@ -300,7 +306,7 @@ public inline fun Path.isHidden(): Boolean = Files.isHidden(this)
 public inline fun Path.isReadable(): Boolean = Files.isReadable(this)
 
 /**
- * Check that this path exists and is writable.
+ * Check if the file located by this path exists and is writable.
  *
  * @see Files.isWritable
  */
@@ -310,7 +316,7 @@ public inline fun Path.isReadable(): Boolean = Files.isReadable(this)
 public inline fun Path.isWritable(): Boolean = Files.isWritable(this)
 
 /**
- * Check if this path points to the same file or directory as [other].
+ * Check if the file located by this path points to the same file or directory as [other].
  *
  * @see Files.isSameFile
  */
@@ -325,8 +331,8 @@ public inline fun Path.isSameFileAs(other: Path): Boolean = Files.isSameFile(thi
  * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
  *
  * @throws java.util.regex.PatternSyntaxException if the glob pattern is invalid.
- * @throws NotDirectoryException If this path does not refer to a directory
- * @throws IOException If an I/O error occurs
+ * @throws NotDirectoryException If this path does not refer to a directory.
+ * @throws IOException If an I/O error occurs.
  *
  * @see Files.newDirectoryStream
  */
@@ -343,9 +349,9 @@ public fun Path.listDirectoryEntries(glob: String = "*"): List<Path> {
  * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
  *
  * @throws java.util.regex.PatternSyntaxException if the glob pattern is invalid.
- * @throws NotDirectoryException If this path does not refer to a directory
- * @throws IOException If an I/O error occurs
- * @return the value returned by [block]
+ * @throws NotDirectoryException If this path does not refer to a directory.
+ * @throws IOException If an I/O error occurs.
+ * @return the value returned by [block].
  *
  * @see Files.newDirectoryStream
  */
@@ -362,8 +368,8 @@ public inline fun <T> Path.useDirectoryEntries(glob: String = "*", block: (Seque
  * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
  *
  * @throws java.util.regex.PatternSyntaxException if the glob pattern is invalid.
- * @throws NotDirectoryException If this path does not refer to a directory
- * @throws IOException If an I/O error occurs
+ * @throws NotDirectoryException If this path does not refer to a directory.
+ * @throws IOException If an I/O error occurs.
  *
  * @see Files.newDirectoryStream
  */
@@ -428,7 +434,7 @@ public inline fun Path.deleteIfExists() =
  * (optional specific exception, some implementations may throw more general [IOException]).
  * @throws IOException if an I/O error occurs or the parent directory does not exist.
  * @throws UnsupportedOperationException if the [attributes ]array contains an attribute that cannot be set atomically
- *          when creating the directory.
+ *   when creating the directory.
  *
  * @see Files.createDirectory
  */
@@ -449,7 +455,7 @@ public inline fun Path.createDirectory(vararg attributes: FileAttribute<*>): Pat
  * (optional specific exception, some implementations may throw more general [IOException]).
  * @throws IOException if an I/O error occurs.
  * @throws UnsupportedOperationException if the [attributes ]array contains an attribute that cannot be set atomically
- *          when creating the directory.
+ *   when creating the directory.
  *
  * @see Files.createDirectories
  */
@@ -466,11 +472,11 @@ public inline fun Path.createDirectories(vararg attributes: FileAttribute<*>): P
  * @param options options specifying how the move should be done, see [StandardCopyOption], [LinkOption].
  *
  * @throws FileAlreadyExistsException if the target file exists but cannot be replaced because the
- *          [StandardCopyOption.REPLACE_EXISTING] option is not specified (optional specific exception).
+ *   [StandardCopyOption.REPLACE_EXISTING] option is not specified (optional specific exception).
  * @throws DirectoryNotEmptyException the [StandardCopyOption.REPLACE_EXISTING] option is specified but the file
- *          cannot be replaced because it is a non-empty directory, or the
- *          source is a non-empty directory containing entries that would
- *          be required to be moved (optional specific exception).
+ *   cannot be replaced because it is a non-empty directory, or the
+ *   source is a non-empty directory containing entries that would
+ *   be required to be moved (optional specific exception).
  *
  * @see Files.move
  */
@@ -486,11 +492,11 @@ public inline fun Path.moveTo(target: Path, vararg options: CopyOption): Path =
  * @param overwrite allows to overwrite the target if it already exists.
  *
  * @throws FileAlreadyExistsException if the target file exists but cannot be replaced because the
- *          `overwrite = true` option is not specified (optional specific exception).
+ *   `overwrite = true` option is not specified (optional specific exception).
  * @throws DirectoryNotEmptyException the `overwrite = true` option is specified but the file
- *          cannot be replaced because it is a non-empty directory, or the
- *          source is a non-empty directory containing entries that would
- *          be required to be moved (optional specific exception).
+ *   cannot be replaced because it is a non-empty directory, or the
+ *   source is a non-empty directory containing entries that would
+ *   be required to be moved (optional specific exception).
  *
  * @see Files.move
  */
@@ -533,7 +539,7 @@ public inline fun Path.getAttribute(attribute: String, vararg options: LinkOptio
  *
  * @throws UnsupportedOperationException if the attribute view is not supported.
  * @throws IllegalArgumentException if the attribute name is not specified or is not recognized, or
- *          the attribute value is of the correct type but has an inappropriate value
+ *   the attribute value is of the correct type but has an inappropriate value.
  * @throws ClassCastException if the attribute value is not of the expected type
  * @see Files.setAttribute
  */
@@ -614,7 +620,7 @@ public inline fun <reified A : BasicFileAttributes> Path.readAttributes(vararg o
  * So the names are comma-separated and optionally prefixed by the attribute view type name, `basic` by default.
  * The special `*` attribute name can be used to read all attributes of the specified view.
  *
- * @return a Map having an entry for an each attribute read, where the key is the attribute name and the value is the attribute value.
+ * @return a [Map<String, Any?>][Map] having an entry for an each attribute read, where the key is the attribute name and the value is the attribute value.
  * @throws UnsupportedOperationException if the attribute view is not supported.
  * @throws IllegalArgumentException if no attributes are specified or an unrecognized attribute is specified.
  * @see Files.readAttributes
@@ -763,9 +769,9 @@ public inline fun Path.readSymbolicLink(): Path =
  * @param attributes an optional list of file attributes to set atomically when creating the file.
  *
  * @throws  FileAlreadyExistsException if a file specified by this path already exists
- * (optional specific exception, some implementations may throw more general [IOException]).
+ *   (optional specific exception, some implementations may throw more general [IOException]).
  * @throws  UnsupportedOperationException if the [attributes] array contains an attribute that cannot be set atomically
- *          when creating the file.
+ *   when creating the file.
  *
  * @see Files.createFile
  */

@@ -18,6 +18,9 @@ import java.nio.file.StandardOpenOption
 
 /**
  * Returns a new [InputStreamReader] for reading the content of this file.
+ *
+ * @param charset character set to use for reading text, UTF-8 by default.
+ * @param options options to determine how the file is opened.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
@@ -29,9 +32,9 @@ public inline fun Path.reader(charset: Charset = Charsets.UTF_8, vararg options:
 /**
  * Returns a new [BufferedReader] for reading the content of this file.
  *
- * @param charset character set to use, UTF-8 by default..
+ * @param charset character set to use for reading text, UTF-8 by default.
  * @param bufferSize necessary size of the buffer.
- * @param options options to determine how the file is opened
+ * @param options options to determine how the file is opened.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
@@ -46,6 +49,9 @@ public inline fun Path.bufferedReader(
 
 /**
  * Returns a new [OutputStreamWriter] for writing the content of this file.
+ *
+ * @param charset character set to use for writing text, UTF-8 by default.
+ * @param options options to determine how the file is opened.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
@@ -57,7 +63,7 @@ public inline fun Path.writer(charset: Charset = Charsets.UTF_8, vararg options:
 /**
  * Returns a new [BufferedWriter] for writing the content of this file.
  *
- * @param charset character set to use, UTF-8 by default..
+ * @param charset character set to use for writing text, UTF-8 by default.
  * @param bufferSize necessary size of the buffer.
  * @param options options to determine how the file is opened.
  */
@@ -115,11 +121,11 @@ public inline fun Path.appendBytes(array: ByteArray) {
 }
 
 /**
- * Gets the entire content of this file as a String using UTF-8 or specified [charset].
+ * Gets the entire content of this file as a String using UTF-8 or the specified [charset].
  *
  * This method is not recommended on huge files. It has an internal limitation of 2 GB file size.
  *
- * @param charset character set to use, UTF-8 by default.
+ * @param charset character set to use for reading text, UTF-8 by default.
  * @return the entire content of this file as a String.
  */
 @SinceKotlin("1.4")
@@ -129,13 +135,14 @@ public inline fun Path.readText(charset: Charset = Charsets.UTF_8): String =
     reader(charset).readText()
 
 /**
- * Sets the content of this file as [text] encoded using UTF-8 or specified [charset].
+ * Sets the content of this file as [text] encoded using UTF-8 or the specified [charset].
  *
  * By default, the file will be overwritten if it already exists, but you can control this behavior
  * with [options].
  *
  * @param text text to write into file.
- * @param charset character set to use.
+ * @param charset character set to use for writing text, UTF-8 by default.
+ * @param options options to determine how the file is opened.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
@@ -147,7 +154,7 @@ public fun Path.writeText(text: String, charset: Charset = Charsets.UTF_8, varar
  * Appends [text] to the content of this file using UTF-8 or the specified [charset].
  *
  * @param text text to append to file.
- * @param charset character set to use, UTF-8 by default.
+ * @param charset character set to use for writing text, UTF-8 by default.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
@@ -162,7 +169,7 @@ public fun Path.appendText(text: String, charset: Charset = Charsets.UTF_8) {
  * You may use this function on huge files.
  *
  * @param options options to determine how the file is opened.
- * @param charset character set to use, UTF-8 by default.
+ * @param charset character set to use for reading text, UTF-8 by default.
  * @param action function to process file lines.
  */
 @SinceKotlin("1.4")
@@ -206,7 +213,7 @@ public inline fun Path.outputStream(vararg options: OpenOption): OutputStream {
  *
  * Do not use this function for huge files.
  *
- * @param charset character set to use, UTF-8 by default.
+ * @param charset character set to use for reading text, UTF-8 by default.
  * @return list of file lines.
  */
 @SinceKotlin("1.4")
@@ -220,7 +227,7 @@ public inline fun Path.readLines(charset: Charset = Charsets.UTF_8): List<String
  * Calls the [block] callback giving it a sequence of all the lines in this file and closes the reader once
  * the processing is complete.
 
- * @param charset character set to use, UTF-8 by default.
+ * @param charset character set to use for reading text, UTF-8 by default.
  * @return the value returned by [block].
  */
 @SinceKotlin("1.4")
@@ -236,7 +243,7 @@ public inline fun <T> Path.useLines(charset: Charset = Charsets.UTF_8, block: (S
  * By default, the file will be overwritten if it already exists, but you can control this behavior
  * with [options].
  *
- * @param charset character set to use, UTF-8 by default.
+ * @param charset character set to use for writing text, UTF-8 by default.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
@@ -251,7 +258,7 @@ public inline fun Path.writeLines(lines: Iterable<CharSequence>, charset: Charse
  * By default, the file will be overwritten if it already exists, but you can control this behavior
  * with [options].
  *
- * @param charset character set to use, UTF-8 by default.
+ * @param charset character set to use for writing text, UTF-8 by default.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
@@ -263,7 +270,7 @@ public inline fun Path.writeLines(lines: Sequence<CharSequence>, charset: Charse
 /**
  * Appends the specified collection of char sequences [lines] to a file terminating each one with the platform's line separator.
  *
- * @param charset character set to use, UTF-8 by default.
+ * @param charset character set to use for writing text, UTF-8 by default.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
@@ -275,7 +282,7 @@ public inline fun Path.appendLines(lines: Iterable<CharSequence>, charset: Chars
 /**
  * Appends the specified sequence of char sequences [lines] to a file terminating each one with the platform's line separator.
  *
- * @param charset character set to use, UTF-8 by default.
+ * @param charset character set to use for writing text, UTF-8 by default.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
