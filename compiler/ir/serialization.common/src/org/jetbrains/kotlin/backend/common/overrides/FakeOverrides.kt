@@ -36,12 +36,14 @@ class FakeOverrideGlobalDeclarationTable(signatureSerializer: IdSignatureSeriali
 
     fun clear() = table.clear()
 }
-class FakeOverrideDeclarationTable(signatureSerializer: IdSignatureSerializer)
-    : DeclarationTable(FakeOverrideGlobalDeclarationTable(signatureSerializer)) {
-
+class FakeOverrideDeclarationTable(
+    signatureSerializer: IdSignatureSerializer,
+    globalTable: FakeOverrideGlobalDeclarationTable = FakeOverrideGlobalDeclarationTable(signatureSerializer)
+) : DeclarationTable(globalTable) {
+    override val globalDeclarationTable: FakeOverrideGlobalDeclarationTable = globalTable
     fun clear() {
         this.table.clear()
-        (globalDeclarationTable as FakeOverrideGlobalDeclarationTable).clear()
+        globalDeclarationTable.clear()
     }
 }
 
