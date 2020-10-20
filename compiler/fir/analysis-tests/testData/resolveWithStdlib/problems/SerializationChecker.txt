@@ -1,0 +1,15 @@
+FILE: test.kt
+    public final class SimpleDiagnostic<E> : R|kotlin/Any| {
+        public constructor<E>(element: R|E|): R|SimpleDiagnostic<E>| {
+            super<R|kotlin/Any|>()
+        }
+
+        public final val element: R|E| = R|<local>/element|
+            public get(): R|E|
+
+    }
+    public abstract interface KtAnnotationEntry : R|kotlin/Any| {
+    }
+    public final fun foo(error: R|DiagnosticFactory0<in KtAnnotationEntry>|, entry: R|KtAnnotationEntry|): R|kotlin/Unit| {
+        R|<local>/error|.<Inapplicable(INAPPLICABLE): /DiagnosticFactory0.on>#(R|<local>/entry|)
+    }
