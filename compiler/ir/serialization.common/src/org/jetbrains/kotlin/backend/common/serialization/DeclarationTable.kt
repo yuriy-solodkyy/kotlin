@@ -50,9 +50,11 @@ abstract class GlobalDeclarationTable(
     fun isExportedDeclaration(declaration: IrDeclaration): Boolean = with(mangler) { declaration.isExported() }
 }
 
-open class DeclarationTable(protected val globalDeclarationTable: GlobalDeclarationTable) {
+open class DeclarationTable(globalTable: GlobalDeclarationTable) {
     protected val table = mutableMapOf<IrDeclaration, IdSignature>()
-    private val signaturer = globalDeclarationTable.signaturer.also {
+    protected open val globalDeclarationTable: GlobalDeclarationTable = globalTable
+    // TODO: we need to disentangle signature construction with declaration tables.
+    private val signaturer: IdSignatureSerializer = globalTable.signaturer.also {
         it.reset()
         it.table = this
     }
