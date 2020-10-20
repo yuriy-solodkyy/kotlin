@@ -603,13 +603,17 @@ abstract class KotlinIrLinker(
         return symbol.owner as IrDeclaration
     }
 
-    override fun referenceSimpleFunctionByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrSimpleFunctionSymbol =
-        deserializersForModules[parent.module]?.referenceSimpleFunctionByLocalSignature(parent.file, idSignature)
+    override fun referenceSimpleFunctionByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrSimpleFunctionSymbol? {
+        if (idSignature.isPublic) return null
+        return deserializersForModules[parent.module]?.referenceSimpleFunctionByLocalSignature(parent.file, idSignature)
             ?: error("No module deserializer for ${parent.render()}")
+    }
 
-    override fun referencePropertyByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrPropertySymbol =
-        deserializersForModules[parent.module]?.referencePropertyByLocalSignature(parent.file, idSignature)
+    override fun referencePropertyByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrPropertySymbol? {
+        if (idSignature.isPublic) return null
+        return deserializersForModules[parent.module]?.referencePropertyByLocalSignature(parent.file, idSignature)
             ?: error("No module deserializer for ${parent.render()}")
+    }
 
     protected open fun createCurrentModuleDeserializer(moduleFragment: IrModuleFragment, dependencies: Collection<IrModuleDeserializer>): IrModuleDeserializer =
         CurrentModuleDeserializer(moduleFragment, dependencies)
