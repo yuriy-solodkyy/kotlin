@@ -1,0 +1,16 @@
+FILE: test.kt
+    public abstract interface PsiModifierListOwner : R|kotlin/Any| {
+    }
+    public abstract interface KtClassOrObject : R|kotlin/Any| {
+        public abstract fun toLightClass(): R|PsiModifierListOwner?|
+
+    }
+    public final fun execute(declaration: R|kotlin/Any|, consumer: R|Processor<in PsiModifierListOwner>|): R|kotlin/Unit| {
+        when (R|<local>/declaration|) {
+            ($subj$ is R|KtClassOrObject|) ->  {
+                lval lightClass: R|PsiModifierListOwner?| = R|<local>/declaration|.R|/KtClassOrObject.toLightClass|()
+                R|<local>/consumer|.<Inapplicable(INAPPLICABLE): /Processor.process>#(R|<local>/lightClass|)
+            }
+        }
+
+    }
