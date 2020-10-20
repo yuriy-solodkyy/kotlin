@@ -441,6 +441,7 @@ val IrFunction.allParameters: List<IrValueParameter>
 
 // This is essentially the same as FakeOverrideBuilder,
 // but it bypasses SymbolTable.
+// TODO: merge it with FakeOverrideBuilder.
 private object FakeOverrideBuilderForLowerings : FakeOverrideBuilderStrategy() {
 
     override fun linkFunctionFakeOverride(declaration: IrFakeOverrideFunction) {
