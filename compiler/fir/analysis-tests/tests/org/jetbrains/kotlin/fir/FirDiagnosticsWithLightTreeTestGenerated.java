@@ -2058,6 +2058,11 @@ public class FirDiagnosticsWithLightTreeTestGenerated extends AbstractFirDiagnos
         public void testSecondaryConstructorCfg() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/problems/secondaryConstructorCfg.kt");
         }
+
+        @TestMetadata("writeInIfReadInLocal.kt")
+        public void testWriteInIfReadInLocal() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/problems/writeInIfReadInLocal.kt");
+        }
     }
 
     @TestMetadata("compiler/fir/analysis-tests/testData/resolve/properties")

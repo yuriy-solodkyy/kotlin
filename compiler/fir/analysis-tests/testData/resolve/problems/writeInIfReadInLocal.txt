@@ -1,0 +1,17 @@
+FILE: writeInIfReadInLocal.kt
+    public final fun foo(arg: R|kotlin/Boolean|): R|kotlin/Unit| {
+        lval callToUse: R|kotlin/Int|
+        when () {
+            R|<local>/arg| ->  {
+                R|<local>/callToUse| = Int(1)
+            }
+            else ->  {
+                R|<local>/callToUse| = Int(2)
+            }
+        }
+
+        local final fun local(): R|kotlin/Int| {
+            ^local R|<local>/callToUse|
+        }
+
+    }
