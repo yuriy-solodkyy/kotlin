@@ -152,7 +152,7 @@ class FakeOverrideBuilder(
         val symbol = linker.referenceSimpleFunctionByLocalSignature(parent, signature)
         val descriptor = symbol?.descriptor ?: WrappedSimpleFunctionDescriptor()
         symbolTable.declareSimpleFunctionFromLinker(descriptor, signature) {
-            assert(it == symbol || symbol == null)
+            assert(it === symbol || symbol == null)
             declaration.acquireSymbol(it)
         }
     }
@@ -162,7 +162,7 @@ class FakeOverrideBuilder(
         val symbol = linker.referencePropertyByLocalSignature(parent, signature)
         val descriptor = symbol?.descriptor ?: WrappedPropertyDescriptor()
         symbolTable.declarePropertyFromLinker(descriptor, signature) {
-            assert(it == symbol || symbol == null)
+            assert(it === symbol || symbol == null)
             declaration.acquireSymbol(it)
         }
     }
