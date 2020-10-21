@@ -11964,6 +11964,11 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
         public void testDuplicatingTypeParameters() throws Exception {
             runTest("compiler/testData/codegen/box/firProblems/duplicatingTypeParameters.kt");
         }
+
+        @TestMetadata("kt42844.kt")
+        public void testKt42844() throws Exception {
+            runTest("compiler/testData/codegen/box/firProblems/kt42844.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/fullJdk")
