@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.backend.common.serialization
 
 import org.jetbrains.kotlin.backend.common.LoggingContext
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideBuilder
-import org.jetbrains.kotlin.backend.common.overrides.FileLocalLinker
+import org.jetbrains.kotlin.backend.common.overrides.FileLocalAwareLinker
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -54,7 +54,7 @@ abstract class KotlinIrLinker(
     val symbolTable: SymbolTable,
     private val exportedDependencies: List<ModuleDescriptor>,
     private val deserializeFakeOverrides: Boolean
-) : IrDeserializer, FileLocalLinker {
+) : IrDeserializer, FileLocalAwareLinker {
 
     // Kotlin-MPP related data. Consider some refactoring
     private val expectUniqIdToActualUniqId = mutableMapOf<IdSignature, IdSignature>()
@@ -603,13 +603,13 @@ abstract class KotlinIrLinker(
         return symbol.owner as IrDeclaration
     }
 
-    override fun referenceSimpleFunctionByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrSimpleFunctionSymbol? {
+    override fun tryReferencingSimpleFunctionByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrSimpleFunctionSymbol? {
         if (idSignature.isPublic) return null
         return deserializersForModules[parent.module]?.referenceSimpleFunctionByLocalSignature(parent.file, idSignature)
             ?: error("No module deserializer for ${parent.render()}")
     }
 
-    override fun referencePropertyByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrPropertySymbol? {
+    override fun tryReferencingPropertyByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrPropertySymbol? {
         if (idSignature.isPublic) return null
         return deserializersForModules[parent.module]?.referencePropertyByLocalSignature(parent.file, idSignature)
             ?: error("No module deserializer for ${parent.render()}")

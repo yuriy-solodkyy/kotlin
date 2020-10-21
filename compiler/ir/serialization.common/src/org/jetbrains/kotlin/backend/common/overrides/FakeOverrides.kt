@@ -51,9 +51,9 @@ interface FakeOverrideClassFilter {
     fun needToConstructFakeOverrides(clazz: IrClass): Boolean
 }
 
-interface FileLocalLinker {
-    fun referenceSimpleFunctionByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrSimpleFunctionSymbol?
-    fun referencePropertyByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrPropertySymbol?
+interface FileLocalAwareLinker {
+    fun tryReferencingSimpleFunctionByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrSimpleFunctionSymbol?
+    fun tryReferencingPropertyByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrPropertySymbol?
 }
 
 object DefaultFakeOverrideClassFilter : FakeOverrideClassFilter {
@@ -72,7 +72,7 @@ object FakeOverrideControl {
 }
 
 class FakeOverrideBuilder(
-    val linker: FileLocalLinker,
+    val linker: FileLocalAwareLinker,
     val symbolTable: SymbolTable,
     val signaturer: IdSignatureSerializer,
     irBuiltIns: IrBuiltIns,
@@ -149,7 +149,7 @@ class FakeOverrideBuilder(
 
     private fun declareFunctionFakeOverride(declaration: IrFakeOverrideFunction, signature: IdSignature) {
         val parent = declaration.parentAsClass
-        val symbol = linker.referenceSimpleFunctionByLocalSignature(parent, signature)
+        val symbol = linker.tryReferencingSimpleFunctionByLocalSignature(parent, signature)
         val descriptor = symbol?.descriptor ?: WrappedSimpleFunctionDescriptor()
         symbolTable.declareSimpleFunctionFromLinker(descriptor, signature) {
             assert(it === symbol || symbol == null)
@@ -159,7 +159,7 @@ class FakeOverrideBuilder(
 
     private fun declarePropertyFakeOverride(declaration: IrFakeOverrideProperty, signature: IdSignature) {
         val parent = declaration.parentAsClass
-        val symbol = linker.referencePropertyByLocalSignature(parent, signature)
+        val symbol = linker.tryReferencingPropertyByLocalSignature(parent, signature)
         val descriptor = symbol?.descriptor ?: WrappedPropertyDescriptor()
         symbolTable.declarePropertyFromLinker(descriptor, signature) {
             assert(it === symbol || symbol == null)
