@@ -192,6 +192,17 @@ abstract class KtClassOrObject :
         }
         return emptyList()
     }
+
+    override fun getAdditionalReceiverObjects(): List<KtExpression> {
+        var child = firstChild
+        while (child != null) {
+            if (child is KtAdditionalReceiverObjectList) {
+                return child.additionalReceiverObjectExpressions()
+            }
+            child = child.nextSibling
+        }
+        return emptyList()
+    }
 }
 
 fun KtClassOrObject.getOrCreateBody(): KtClassBody {

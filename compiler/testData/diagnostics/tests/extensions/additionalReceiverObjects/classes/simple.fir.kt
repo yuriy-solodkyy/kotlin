@@ -3,7 +3,7 @@ object Some {
 }
 
 class A with(Some) {
-    val b = a
+    val b = <!UNRESOLVED_REFERENCE!>a<!>
 }
 
 with<A> fun f() {}

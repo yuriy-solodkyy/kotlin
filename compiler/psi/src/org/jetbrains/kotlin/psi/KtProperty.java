@@ -129,10 +129,11 @@ public class KtProperty extends KtTypeParameterListOwnerStub<KotlinPropertyStub>
         return getAdditionalReceiverTypeRefByTree();
     }
 
-    @Nullable
+    @NotNull
     @Override
-    public KtAdditionalReceiverObjectList getAdditionalReceiverObjectList() {
-        return null;
+    public List<KtExpression> getAdditionalReceiverObjects() {
+        // TODO: Implement
+        return Collections.emptyList();
     }
 
     @NotNull

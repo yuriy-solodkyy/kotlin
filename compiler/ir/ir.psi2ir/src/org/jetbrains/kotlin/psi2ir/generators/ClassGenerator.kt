@@ -26,14 +26,11 @@ import org.jetbrains.kotlin.descriptors.impl.PropertyDescriptorImpl
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.IrImplementingDelegateDescriptorImpl
-import org.jetbrains.kotlin.ir.expressions.IrBlockBody
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
-import org.jetbrains.kotlin.ir.expressions.mapValueParameters
-import org.jetbrains.kotlin.ir.expressions.putTypeArguments
-import org.jetbrains.kotlin.ir.expressions.typeParametersCount
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.createIrClassFromDescriptor
 import org.jetbrains.kotlin.ir.util.declareSimpleFunctionWithOverrides
@@ -116,7 +113,7 @@ class ClassGenerator(
                 classDescriptor.thisAsReceiverParameter.type.toIrType()
             )
 
-            generateFieldsForAdditionalReceivers(irClass, classDescriptor)
+            generateFieldsForAdditionalReceivers(irClass, classDescriptor, ktClassOrObject)
 
             val irPrimaryConstructor = generatePrimaryConstructor(irClass, ktClassOrObject)
             if (irPrimaryConstructor != null) {
@@ -442,29 +439,16 @@ class ClassGenerator(
         EnumClassMembersGenerator(declarationGenerator).generateSpecialMembers(irClass)
     }
 
-    private fun generateFieldsForAdditionalReceivers(irClass: IrClass, classDescriptor: ClassDescriptor) {
-        for ((fieldIndex, receiverDescriptor) in classDescriptor.additionalReceivers.withIndex()) {
-            val descriptor = PropertyDescriptorImpl.create(
-                classDescriptor,
-                Annotations.EMPTY,
-                Modality.FINAL,
-                DescriptorVisibilities.DEFAULT_VISIBILITY,
-                false,
-                Name.identifier("additionalReceiverField$fieldIndex"),
-                CallableMemberDescriptor.Kind.DECLARATION,
-                SourceElement.NO_SOURCE,
-                false, false,
-                classDescriptor.isExpect,
-                false, false, false
-            )
-            descriptor.setType(
-                receiverDescriptor.type, emptyList(), DescriptorUtils.getDispatchReceiverParameterIfNeeded(classDescriptor), null,
-                emptyList()
-            )
-            descriptor.initialize(
-                null, null,
-                FieldDescriptorImpl(Annotations.EMPTY, descriptor),
-                null
+    private fun generateFieldsForAdditionalReceivers(
+        irClass: IrClass,
+        classDescriptor: ClassDescriptor,
+        ktClassOrObject: KtPureClassOrObject
+    ) {
+        var fieldIndex = 0
+        for (receiverDescriptor in classDescriptor.additionalReceivers) {
+            val descriptor = generatePropertyDescriptorForAdditionalReceiver(
+                context.symbolTable.nameProvider.nameForAdditionalReceiver(fieldIndex),
+                receiverDescriptor.type, classDescriptor
             )
             context.additionalDescriptorStorage.put(receiverDescriptor.value, descriptor)
             val irField = context.symbolTable.declareField(
@@ -474,7 +458,56 @@ class ClassGenerator(
                 descriptor.visibility
             )
             irClass.addMember(irField)
+            fieldIndex++
         }
+        for (expression in ktClassOrObject.additionalReceiverObjects) {
+            val type = getOrFail(BindingContext.EXPRESSION_TYPE_INFO, expression).type
+                ?: error("No type for additional receiver object $expression")
+            val descriptor = generatePropertyDescriptorForAdditionalReceiver(
+                context.symbolTable.nameProvider.nameForAdditionalReceiverObject(fieldIndex),
+                type,
+                classDescriptor
+            )
+            context.additionalDescriptorStorage.put(expression, descriptor)
+            val statementGenerator = createBodyGenerator(irClass.symbol).createStatementGenerator()
+            val irField = context.symbolTable.declareField(
+                UNDEFINED_OFFSET, UNDEFINED_OFFSET,
+                IrDeclarationOrigin.FIELD_FOR_CLASS_ADDITIONAL_RECEIVER,
+                descriptor, descriptor.type.toIrType(),
+                context.irFactory.createExpressionBody(statementGenerator.generateExpression(expression))
+            )
+            irClass.addMember(irField)
+        }
+    }
+
+    private fun generatePropertyDescriptorForAdditionalReceiver(
+        name: Name,
+        type: KotlinType,
+        classDescriptor: ClassDescriptor
+    ): PropertyDescriptor {
+        val descriptor = PropertyDescriptorImpl.create(
+            classDescriptor,
+            Annotations.EMPTY,
+            Modality.FINAL,
+            DescriptorVisibilities.DEFAULT_VISIBILITY,
+            false,
+            name,
+            CallableMemberDescriptor.Kind.DECLARATION,
+            SourceElement.NO_SOURCE,
+            false, false,
+            classDescriptor.isExpect,
+            false, false, false
+        )
+        descriptor.setType(
+            type, emptyList(), DescriptorUtils.getDispatchReceiverParameterIfNeeded(classDescriptor), null,
+            emptyList()
+        )
+        descriptor.initialize(
+            null, null,
+            FieldDescriptorImpl(Annotations.EMPTY, descriptor),
+            null
+        )
+        return descriptor
     }
 
     private fun generatePrimaryConstructor(irClass: IrClass, ktClassOrObject: KtPureClassOrObject): IrConstructor? {
@@ -546,8 +579,10 @@ class ClassGenerator(
 
             if (!enumEntryDescriptor.isExpect) {
                 irEnumEntry.initializerExpression =
-                    context.irFactory.createExpressionBody(createBodyGenerator(irEnumEntry.symbol)
-                        .generateEnumEntryInitializer(ktEnumEntry, enumEntryDescriptor))
+                    context.irFactory.createExpressionBody(
+                        createBodyGenerator(irEnumEntry.symbol)
+                            .generateEnumEntryInitializer(ktEnumEntry, enumEntryDescriptor)
+                    )
             }
 
             if (ktEnumEntry.hasMemberDeclarations()) {

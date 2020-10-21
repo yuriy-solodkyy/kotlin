@@ -62,6 +62,10 @@ public interface KtPureClassOrObject extends KtPureElement, KtDeclarationContain
     @ReadOnly
     List<KtTypeReference> getAdditionalReceiverTypeReferences();
 
+    @NotNull
+    @ReadOnly
+    List<KtExpression> getAdditionalReceiverObjects();
+
     @Nullable
     KtClassBody getBody();
 }

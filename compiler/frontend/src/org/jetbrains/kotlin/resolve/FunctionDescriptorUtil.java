@@ -64,13 +64,12 @@ public class FunctionDescriptorUtil {
 
     @NotNull
     public static LexicalScope makeFunctionInnerScopeWithAdditionalReceiverObjects(
-            @NotNull KtAdditionalReceiverObjectList additionalReceiverObjectList,
+            @NotNull List<KtExpression> expressions,
             @NotNull FunctionDescriptor functionDescriptor,
             @NotNull LexicalScope innerScope,
             @NotNull ExpressionTypingContext context,
             @NotNull ExpressionTypingServices expressionTypingServices
     ) {
-        List<KtExpression> expressions = additionalReceiverObjectList.additionalReceiverObjectExpressions();
         List<ReceiverParameterDescriptor> implicitObjectReceivers = expressions.stream().map(expression -> {
             KotlinType kotlinType = expressionTypingServices.getTypeInfo(expression, context.replaceExpectedType(null)).getType();
             if (kotlinType != null) {

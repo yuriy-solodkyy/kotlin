@@ -224,20 +224,18 @@ public class ExpressionTypingServices {
         LexicalScope functionInnerScope = FunctionDescriptorUtil.getFunctionInnerScope(outerScope, functionDescriptor, trace,
                                                                                        expressionTypingComponents.overloadChecker);
         if (function instanceof KtFunction) {
-            KtAdditionalReceiverObjectList ktAdditionalReceiverObjectList = ((KtFunction) function).getAdditionalReceiverObjectList();
-            if (ktAdditionalReceiverObjectList != null) {
-                ExpressionTypingContext context = ExpressionTypingContext.newContext(
-                        trace, functionInnerScope, dataFlowInfo, TypeUtils.NO_EXPECTED_TYPE,
-                        getLanguageVersionSettings(), expressionTypingComponents.dataFlowValueFactory
-                );
-                functionInnerScope = FunctionDescriptorUtil.makeFunctionInnerScopeWithAdditionalReceiverObjects(
-                        ktAdditionalReceiverObjectList,
-                        functionDescriptor,
-                        functionInnerScope,
-                        context,
-                        this
-                );
-            }
+            List<KtExpression> additionalReceiverObjectExpressions = ((KtFunction) function).getAdditionalReceiverObjects();
+            ExpressionTypingContext context = ExpressionTypingContext.newContext(
+                    trace, functionInnerScope, dataFlowInfo, TypeUtils.NO_EXPECTED_TYPE,
+                    getLanguageVersionSettings(), expressionTypingComponents.dataFlowValueFactory
+            );
+            functionInnerScope = FunctionDescriptorUtil.makeFunctionInnerScopeWithAdditionalReceiverObjects(
+                    additionalReceiverObjectExpressions,
+                    functionDescriptor,
+                    functionInnerScope,
+                    context,
+                    this
+            );
         }
 
         ExpressionTypingContext context = ExpressionTypingContext.newContext(

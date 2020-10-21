@@ -963,20 +963,18 @@ public class BodyResolver {
         );
 
         if (function instanceof KtFunction) {
-            KtAdditionalReceiverObjectList ktAdditionalReceiverObjectList = ((KtFunction) function).getAdditionalReceiverObjectList();
-            if (ktAdditionalReceiverObjectList != null) {
-                ExpressionTypingContext context = ExpressionTypingContext.newContext(
-                        trace, headerScope, outerDataFlowInfo, TypeUtils.NO_EXPECTED_TYPE,
-                        languageVersionSettings, valueParameterResolver.getDataFlowValueFactory()
-                );
-                innerScope = FunctionDescriptorUtil.makeFunctionInnerScopeWithAdditionalReceiverObjects(
-                        ktAdditionalReceiverObjectList,
-                        functionDescriptor,
-                        innerScope,
-                        context,
-                        expressionTypingServices
-                );
-            }
+            List<KtExpression> additionalReceiverObjectExpressions = ((KtFunction) function).getAdditionalReceiverObjects();
+            ExpressionTypingContext context = ExpressionTypingContext.newContext(
+                    trace, headerScope, outerDataFlowInfo, TypeUtils.NO_EXPECTED_TYPE,
+                    languageVersionSettings, valueParameterResolver.getDataFlowValueFactory()
+            );
+            innerScope = FunctionDescriptorUtil.makeFunctionInnerScopeWithAdditionalReceiverObjects(
+                    additionalReceiverObjectExpressions,
+                    functionDescriptor,
+                    innerScope,
+                    context,
+                    expressionTypingServices
+            );
         }
 
         // Synthetic "field" creation

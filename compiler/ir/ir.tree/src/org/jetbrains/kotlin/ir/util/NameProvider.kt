@@ -6,12 +6,21 @@
 package org.jetbrains.kotlin.ir.util
 
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.name.Name
 
 interface NameProvider {
     fun nameForDeclaration(descriptor: DeclarationDescriptor): Name
 
+    fun nameForAdditionalReceiver(index: Int): Name
+
+    fun nameForAdditionalReceiverObject(index: Int): Name
+
     object DEFAULT : NameProvider {
         override fun nameForDeclaration(descriptor: DeclarationDescriptor): Name = descriptor.name
+
+        override fun nameForAdditionalReceiver(index: Int): Name = Name.identifier("\$additionalReceiver_$index")
+
+        override fun nameForAdditionalReceiverObject(index: Int): Name = Name.identifier("\$additionalReceiverObject_$index")
     }
 }
