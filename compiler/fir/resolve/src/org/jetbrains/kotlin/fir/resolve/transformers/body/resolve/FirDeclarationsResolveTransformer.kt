@@ -624,7 +624,13 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
         if (implicitTypeOnly) return anonymousInitializer.compose()
         return withLocalScopeCleanup {
             dataFlowAnalyzer.enterInitBlock(anonymousInitializer)
-            addLocalScope(context.getPrimaryConstructorParametersScope())
+            addLocalScope(
+                context.getPrimaryConstructorParametersScope()?.removeMatchingVariables(
+                    (context.containerIfAny as? FirClass<*>)?.declarations?.filterIsInstance<FirProperty>()?.filter {
+                        it.source?.kind == FirFakeSourceElementKind.PropertyFromParameter
+                    }.orEmpty()
+                )
+            )
             addNewLocalScope()
             val result =
                 transformDeclarationContent(anonymousInitializer, ResolutionMode.ContextIndependent).single as FirAnonymousInitializer

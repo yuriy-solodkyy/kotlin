@@ -44,6 +44,14 @@ class FirLocalScope private constructor(
         )
     }
 
+    fun removeMatchingVariables(classPropertiesFromConstructorParameters: List<FirProperty>): FirLocalScope {
+        var properties = properties
+        for (classProperty in classPropertiesFromConstructorParameters) {
+            properties = properties.remove(classProperty.name)
+        }
+        return FirLocalScope(properties, functions, classes)
+    }
+
     fun storeBackingField(property: FirProperty): FirLocalScope {
         return FirLocalScope(
             properties.put(NAME_FOR_BACKING_FIELD, property.backingFieldSymbol), functions, classes
