@@ -143,8 +143,8 @@ class EnumClassConstructorLowering(val context: JsCommonBackendContext) : Declar
             val oldParameters = enumConstructor.valueParameters
             val newParameters = valueParameters
             oldParameters.forEach { old ->
-                // TODO Match by index?
-                val new = newParameters.single { it.name == old.name }
+                // index + 2 because of adding 2 constructor parameters: name and ordinal
+                val new = newParameters.single { it.index == old.index + 2 }
                 old.valueParameter = new
 
                 old.defaultValue?.let { default ->
@@ -235,7 +235,7 @@ class EnumClassConstructorBodyTransformer(val context: JsCommonBackendContext) :
             }
 
         override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
-            val delegatingConstructor = expression.symbol.owner. let { it.newConstructor ?: it }
+            val delegatingConstructor = expression.symbol.owner.let { it.newConstructor ?: it }
 
             return builder.irDelegatingConstructorCall(delegatingConstructor).apply {
                 var valueArgIdx = 0
@@ -426,7 +426,7 @@ class EnumClassCreateInitializerLowering(val context: JsIrBackendContext) : Decl
         }
 }
 
-class EnumEntryCreateGetInstancesFunsLowering(val context: JsIrBackendContext): DeclarationTransformer {
+class EnumEntryCreateGetInstancesFunsLowering(val context: JsIrBackendContext) : DeclarationTransformer {
 
     private var IrEnumEntry.correspondingField by context.mapping.enumEntryToCorrespondingField
     private var IrClass.initEntryInstancesFun: IrSimpleFunction? by context.mapping.enumClassToInitEntryInstancesFun
@@ -472,7 +472,7 @@ class EnumEntryCreateGetInstancesFunsLowering(val context: JsIrBackendContext): 
         }
 }
 
-class EnumSyntheticFunctionsLowering(val context: JsIrBackendContext): DeclarationTransformer {
+class EnumSyntheticFunctionsLowering(val context: JsIrBackendContext) : DeclarationTransformer {
 
     private var IrEnumEntry.getInstanceFun by context.mapping.enumEntryToGetInstanceFun
 
