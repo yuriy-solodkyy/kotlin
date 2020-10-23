@@ -1,3 +1,5 @@
+// IGNORE_BACKEND: JVM, JS
+
 open class A {
     open val a = "fail"
 }

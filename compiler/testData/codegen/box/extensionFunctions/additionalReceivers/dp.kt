@@ -1,4 +1,5 @@
 // WITH_RUNTIME
+// IGNORE_BACKEND: JVM, JS
 
 class View {
     val coefficient = 42

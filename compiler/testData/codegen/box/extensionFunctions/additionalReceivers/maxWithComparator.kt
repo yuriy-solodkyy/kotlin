@@ -1,4 +1,5 @@
 // WITH_RUNTIME
+// IGNORE_BACKEND: JVM, JS
 
 with<Comparator<T>> fun <T> Iterable<T>.maxOrNull(): T? {
     val iterator = iterator()

@@ -1,4 +1,5 @@
 // WITH_RUNTIME
+// IGNORE_BACKEND: JVM, JS
 
 with<Collection<P>> class A<P> {
     val result = if (!isEmpty()) "OK" else "fail"

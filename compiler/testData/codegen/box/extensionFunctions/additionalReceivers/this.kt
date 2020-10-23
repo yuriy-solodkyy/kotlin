@@ -1,3 +1,5 @@
+// IGNORE_BACKEND: JVM, JS
+
 class A<T>(val a: T)
 class B(val b: Any?)
 

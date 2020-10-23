@@ -1,3 +1,5 @@
+// IGNORE_BACKEND: JVM, JS
+
 class O(val o: String)
 class K(val k: String)
 

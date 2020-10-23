@@ -1,4 +1,5 @@
 // WITH_RUNTIME
+// IGNORE_BACKEND: JVM, JS
 
 interface NumberOperations {
     operator fun Number.plus(other: Number): Number

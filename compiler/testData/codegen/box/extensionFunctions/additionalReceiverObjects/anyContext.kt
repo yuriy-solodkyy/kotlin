@@ -1,3 +1,5 @@
+// IGNORE_BACKEND: JVM, JS
+
 interface AnyContext {
     operator fun Any.plus(other: Any): Any
 }

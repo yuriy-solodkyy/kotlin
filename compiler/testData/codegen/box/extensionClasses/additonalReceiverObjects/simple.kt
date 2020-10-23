@@ -1,3 +1,5 @@
+// IGNORE_BACKEND: JVM, JS
+
 class A {
     val a = 1
 }

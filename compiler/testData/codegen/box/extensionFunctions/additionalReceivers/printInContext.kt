@@ -1,3 +1,5 @@
+// IGNORE_BACKEND: JVM, JS
+
 interface Context {
     fun result(): String
 }
