@@ -420,7 +420,7 @@ open class SerializerCodegenImpl(
             anew(serializableAsmType)
             dup()
             val constructorDesc = if (serializableDescriptor.isInternalSerializable)
-                buildInternalConstructorDesc(descVar, propsStartVar, bitMaskBase, codegen, properties.serializableProperties)
+                buildInternalConstructorDesc(propsStartVar, bitMaskBase, codegen, properties.serializableProperties)
             else buildExternalConstructorDesc(propsStartVar, bitMaskBase)
             invokespecial(serializableAsmType.internalName, "<init>", constructorDesc, false)
             if (!serializableDescriptor.isInternalSerializable && !properties.serializableStandaloneProperties.isEmpty()) {

@@ -17,6 +17,7 @@
 package org.jetbrains.kotlinx.serialization.compiler.backend.jvm
 
 import org.jetbrains.kotlin.codegen.*
+import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -28,25 +29,25 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperClassOrAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.resolve.jvm.diagnostics.OtherOrigin
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.*
+import org.jetbrains.kotlinx.serialization.compiler.diagnostic.VersionReader
 import org.jetbrains.kotlinx.serialization.compiler.diagnostic.serializableAnnotationIsUseless
 import org.jetbrains.kotlinx.serialization.compiler.resolve.*
-import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIAL_DESCRIPTOR_CLASS
 import org.jetbrains.org.objectweb.asm.Label
+import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 
-
-internal const val USE_CHECK_OPTIMIZATION = false
-
-internal const val PLUGIN_UTILS_LIBRARY_CLASS = "PluginUtilsKt"
-internal const val THROW_MISSING_FIELD_EXCEPTION_METHOD = "throwMissingFieldException"
+val fieldMissingOptimizationVersion = ApiVersion.parse("1.1")!!
 
 class SerializableCodegenImpl(
     private val classCodegen: ImplementationBodyCodegen
 ) : SerializableCodegen(classCodegen.descriptor, classCodegen.bindingContext) {
 
     private val thisAsmType = classCodegen.typeMapper.mapClass(serializableDescriptor)
+    private val staticDescriptor = serializableDescriptor.declaredTypeParameters.isEmpty()
+    private val useFieldMissingOptimization = canUseFieldMissingOptimization()
 
     companion object {
         fun generateSerializableExtensions(codegen: ImplementationBodyCodegen) {
@@ -90,6 +91,15 @@ class SerializableCodegenImpl(
 
     override fun generateWriteSelfMethod(methodDescriptor: FunctionDescriptor) {
         classCodegen.generateMethod(methodDescriptor) { _, expr -> doGenerateWriteSelf(expr) }
+    }
+
+    private fun canUseFieldMissingOptimization(): Boolean {
+        val implementationVersion = VersionReader.getVersionsForCurrentModuleFromContext(
+            serializableDescriptor.module,
+            classCodegen.bindingContext
+        )?.implementationVersion
+
+        return if (implementationVersion != null) implementationVersion >= fieldMissingOptimizationVersion else false
     }
 
     private fun InstructionAdapter.doGenerateWriteSelf(exprCodegen: ExpressionCodegen) {
@@ -186,21 +196,20 @@ class SerializableCodegenImpl(
     }
 
     private fun InstructionAdapter.doGenerateConstructorImpl(exprCodegen: ExpressionCodegen) {
-        val descVar = 1
-        val seenMask = 2
-        val bitMaskOff = fun(it: Int): Int { return seenMask + bitMaskSlotAt(it) }
-        val bitMaskEnd = seenMask + properties.serializableProperties.bitMaskSlotCount()
+        val seenMaskVar = 1
+        val bitMaskOff = fun(it: Int): Int { return seenMaskVar + bitMaskSlotAt(it) }
+        val bitMaskEnd = seenMaskVar + properties.serializableProperties.bitMaskSlotCount()
 
-        if (USE_CHECK_OPTIMIZATION) {
-            generateNewGoldenMaskCheck(descVar, seenMask)
+        if (useFieldMissingOptimization) {
+            generateOptimizedGoldenMaskCheck(seenMaskVar)
         }
 
-        var (propIndex, propOffset) = generateSuperSerializableCall(descVar, seenMask, bitMaskEnd)
+        var (propIndex, propOffset) = generateSuperSerializableCall(seenMaskVar, bitMaskEnd)
         for (i in propIndex until properties.serializableProperties.size) {
             val prop = properties[i]
             val propType = prop.asmType
             if (!prop.optional) {
-                if (!USE_CHECK_OPTIMIZATION) {
+                if (!useFieldMissingOptimization) {
                     // primary were validated before constructor call
                     genValidateProperty(i, bitMaskOff(i))
                     val nonThrowLabel = Label()
@@ -253,7 +262,7 @@ class SerializableCodegenImpl(
         areturn(Type.VOID_TYPE)
     }
 
-    private fun InstructionAdapter.generateSuperSerializableCall(descVar: Int, maskVar: Int, propStartVar: Int): Pair<Int, Int> {
+    private fun InstructionAdapter.generateSuperSerializableCall(maskVar: Int, propStartVar: Int): Pair<Int, Int> {
         val superClass = serializableDescriptor.getSuperClassOrAny()
         val superType = classCodegen.typeMapper.mapType(superClass).internalName
 
@@ -277,13 +286,18 @@ class SerializableCodegenImpl(
             return 0 to propStartVar
         } else {
             val superProps = bindingContext.serializablePropertiesFor(superClass).serializableProperties
-            val creator = buildInternalConstructorDesc(descVar, propStartVar, maskVar, classCodegen, superProps)
+            val creator = buildInternalConstructorDesc(propStartVar, maskVar, classCodegen, superProps)
             invokespecial(superType, "<init>", creator, false)
             return superProps.size to propStartVar + superProps.sumBy { it.asmType.size }
         }
     }
 
-    private fun InstructionAdapter.generateNewGoldenMaskCheck(descVar: Int, maskVar: Int) {
+    private fun InstructionAdapter.generateOptimizedGoldenMaskCheck(maskVar: Int) {
+        if (serializableDescriptor.isAbstractSerializableClass() || serializableDescriptor.isSealedSerializableClass()) {
+            //for abstract classes fields MUST BE checked in child classes
+            return
+        }
+
         val allPresentsLabel = Label()
         val maskSlotCount = properties.serializableProperties.bitMaskSlotCount()
         if (maskSlotCount == 1) {
@@ -304,18 +318,18 @@ class SerializableCodegenImpl(
 
             load(maskVar, OPT_MASK_TYPE)
             iconst(goldenMask)
-            load(descVar, descType)
+
+            stackSerialDescriptor()
             invokestatic(
-                "kotlinx/serialization/internal/$PLUGIN_UTILS_LIBRARY_CLASS", THROW_MISSING_FIELD_EXCEPTION_METHOD,
-                "(IILkotlinx/serialization/descriptors/$SERIAL_DESCRIPTOR_CLASS;)V", false
+                pluginUtilsType.internalName, CallingConventions.throwMissingFieldException, "(II${descType.descriptor})V", false
             )
         } else {
             val fieldsMissingLabel = Label()
 
-            val goldenMaskArray = getGoldenMaskArray()
-            for (i in goldenMaskArray.indices) {
-                val goldenMask = goldenMaskArray[i]
+            val goldenMaskList = getGoldenMaskList()
+            goldenMaskList.forEachIndexed { i, goldenMask ->
                 val maskIndex = maskVar + i
+                //if( (goldenMask & seen) != goldenMask )
                 iconst(goldenMask)
                 dup()
                 load(maskIndex, OPT_MASK_TYPE)
@@ -323,46 +337,75 @@ class SerializableCodegenImpl(
                 ificmpne(fieldsMissingLabel)
             }
             goTo(allPresentsLabel)
-            //prepare seen array
+
             visitLabel(fieldsMissingLabel)
-            iconst(maskSlotCount)
-            newarray(OPT_MASK_TYPE)
-            for (i in 0 until maskSlotCount) {
-                dup()
-                iconst(i)
-                load(maskVar + i, Type.INT_TYPE)
-                astore(OPT_MASK_TYPE)
+            //prepare seen array
+            fillArray(OPT_MASK_TYPE, goldenMaskList) { i, _ ->
+                load(maskVar + i, OPT_MASK_TYPE)
             }
             //prepare golden mask array
-            iconst(maskSlotCount)
-            newarray(OPT_MASK_TYPE)
-            for (i in 0 until maskSlotCount) {
-                dup()
-                iconst(i)
-                iconst(goldenMaskArray[i])
-                astore(OPT_MASK_TYPE)
+            fillArray(OPT_MASK_TYPE, goldenMaskList) { _, goldenMask ->
+                iconst(goldenMask)
             }
-            load(descVar, descType)
+            stackSerialDescriptor()
             invokestatic(
-                "kotlinx/serialization/internal/$PLUGIN_UTILS_LIBRARY_CLASS", THROW_MISSING_FIELD_EXCEPTION_METHOD,
-                "([I[ILkotlinx/serialization/descriptors/$SERIAL_DESCRIPTOR_CLASS;)V", false
+                pluginUtilsType.internalName, CallingConventions.throwMissingFieldException, "([I[I${descType.descriptor})V", false
             )
         }
         visitLabel(allPresentsLabel)
     }
 
-    private fun getGoldenMaskArray(): IntArray {
+    private fun InstructionAdapter.stackSerialDescriptor() {
+        if (serializableDescriptor.shouldHaveGeneratedSerializer && staticDescriptor) {
+            val serializer = serializableDescriptor.classSerializer!!
+            StackValue.singleton(serializer, classCodegen.typeMapper).put(kSerializerType, this)
+            invokeinterface(kSerializerType.internalName, descriptorGetterName, "()${descType.descriptor}")
+        } else {
+            generateStaticDescriptorField()
+
+            getstatic(thisAsmType.internalName, initializedDescriptorFieldName, descType.descriptor)
+        }
+    }
+
+    private fun generateStaticDescriptorField() {
+        val flags = Opcodes.ACC_PRIVATE or Opcodes.ACC_FINAL or Opcodes.ACC_SYNTHETIC or Opcodes.ACC_STATIC
+        classCodegen.v.newField(
+            OtherOrigin(classCodegen.myClass.psiOrParent), flags,
+            initializedDescriptorFieldName, descType.descriptor, null, null
+        )
+
+        val clInit = classCodegen.createOrGetClInitCodegen()
+        with(clInit.v) {
+            anew(descImplType)
+            dup()
+            aconst(serializableDescriptor.serialName())
+            aconst(null)
+            aconst(properties.serializableProperties.size)
+            invokespecial(descImplType.internalName, "<init>", "(Ljava/lang/String;${generatedSerializerType.descriptor}I)V", false)
+            for (property in properties.serializableProperties) {
+                dup()
+                aconst(property.name)
+                iconst(if (property.optional) 1 else 0)
+                invokevirtual(descImplType.internalName, CallingConventions.addElement, "(Ljava/lang/String;Z)V", false)
+            }
+
+            putstatic(thisAsmType.internalName, initializedDescriptorFieldName, descType.descriptor)
+        }
+    }
+
+    private fun getGoldenMaskList(): List<Int> {
         val maskSlotCount = properties.serializableProperties.bitMaskSlotCount()
-        val goldenMaskArray = IntArray(maskSlotCount)
+        val goldenMaskList = MutableList(maskSlotCount) { 0 }
 
         for (i in properties.serializableProperties.indices) {
             if (!properties.serializableProperties[i].optional) {
                 val slotNumber = i / 32
                 val bitInSlot = i % 32
-                goldenMaskArray[slotNumber] = goldenMaskArray[slotNumber] or (1 shl bitInSlot)
+                goldenMaskList[slotNumber] = goldenMaskList[slotNumber] or (1 shl bitInSlot)
             }
         }
-        return goldenMaskArray;
+
+        return goldenMaskList
     }
 
     private fun ExpressionCodegen.genInitProperty(prop: SerializableProperty) = getProp(prop)?.let {

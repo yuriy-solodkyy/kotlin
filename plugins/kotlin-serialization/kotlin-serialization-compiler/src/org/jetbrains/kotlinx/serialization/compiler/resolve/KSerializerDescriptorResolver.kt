@@ -307,21 +307,10 @@ object KSerializerDescriptorResolver {
         val bitMaskSlotsCount = serializableProperties.bitMaskSlotCount()
         var i = 0
         val consParams = mutableListOf<ValueParameterDescriptor>()
-
-        val serialDescriptor =
-            classDescriptor.getClassFromSerializationPackage(SerialEntityNames.SERIAL_DESCRIPTOR_CLASS).toSimpleType(false)
-
-        consParams.add(
-            ValueParameterDescriptorImpl(
-                functionDescriptor, null, i++, Annotations.EMPTY, Name.identifier("serialDesc"), serialDescriptor, false,
-                false, false, null, functionDescriptor.source
-            )
-        )
-
         repeat(bitMaskSlotsCount) {
             consParams.add(
                 ValueParameterDescriptorImpl(
-                    functionDescriptor, null, i++, Annotations.EMPTY, Name.identifier("seen${i - 1}"), functionDescriptor.builtIns.intType, false,
+                    functionDescriptor, null, i++, Annotations.EMPTY, Name.identifier("seen$i"), functionDescriptor.builtIns.intType, false,
                     false, false, null, functionDescriptor.source
                 )
             )

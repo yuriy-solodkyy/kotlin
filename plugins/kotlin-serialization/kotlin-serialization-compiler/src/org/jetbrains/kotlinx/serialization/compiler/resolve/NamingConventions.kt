@@ -68,6 +68,8 @@ object SerialEntityNames {
     const val SERIAL_DESCRIPTOR_CLASS_IMPL = "PluginGeneratedSerialDescriptor"
     const val SERIAL_DESCRIPTOR_FOR_ENUM = "EnumDescriptor"
 
+    const val PLUGIN_UTILS_FILE = "PluginUtils"
+
     //exceptions
     const val SERIAL_EXC = "SerializationException"
     const val MISSING_FIELD_EXC = "MissingFieldException"
@@ -114,4 +116,5 @@ object CallingConventions {
     const val addElement = "addElement"
     const val addAnnotation = "pushAnnotation"
     const val addClassAnnotation = "pushClassAnnotation"
+    const val throwMissingFieldException = "throwMissingFieldException"
 }

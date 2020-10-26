@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.codegen.*
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.load.kotlin.TypeMappingMode
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
@@ -25,10 +26,12 @@ import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.DE
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.ENCODER_CLASS
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.KSERIALIZER_CLASS
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.MISSING_FIELD_EXC
+import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.PLUGIN_UTILS_FILE
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIAL_CTOR_MARKER_NAME
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIAL_DESCRIPTOR_CLASS
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIAL_DESCRIPTOR_CLASS_IMPL
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIAL_DESCRIPTOR_FOR_ENUM
+import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIAL_DESC_FIELD
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIAL_EXC
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIAL_LOADER_CLASS
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIAL_SAVER_CLASS
@@ -50,7 +53,7 @@ internal val kOutputType = Type.getObjectType("kotlinx/serialization/encoding/$S
 internal val encoderType = Type.getObjectType("kotlinx/serialization/encoding/$ENCODER_CLASS")
 internal val decoderType = Type.getObjectType("kotlinx/serialization/encoding/$DECODER_CLASS")
 internal val kInputType = Type.getObjectType("kotlinx/serialization/encoding/$STRUCTURE_DECODER_CLASS")
-
+internal val pluginUtilsType = Type.getObjectType("kotlinx/serialization/internal/${PLUGIN_UTILS_FILE}Kt")
 
 internal val kSerialSaverType = Type.getObjectType("kotlinx/serialization/$SERIAL_SAVER_CLASS")
 internal val kSerialLoaderType = Type.getObjectType("kotlinx/serialization/$SERIAL_LOADER_CLASS")
@@ -60,6 +63,10 @@ internal val kSerializerArrayType = Type.getObjectType("[Lkotlinx/serialization/
 internal val serializationExceptionName = "kotlinx/serialization/$SERIAL_EXC"
 internal val serializationExceptionMissingFieldName = "kotlinx/serialization/$MISSING_FIELD_EXC"
 internal val serializationExceptionUnknownIndexName = "kotlinx/serialization/$UNKNOWN_FIELD_EXC"
+
+internal val initializedDescriptorFieldName = "initializedDescriptor"
+internal val descriptorGetterName = JvmAbi.getterName(SERIAL_DESC_FIELD)
+
 
 val OPT_MASK_TYPE: Type = Type.INT_TYPE
 val OPT_MASK_BITS = 32
@@ -109,16 +116,12 @@ fun InstructionAdapter.genKOutputMethodCall(
 }
 
 internal fun InstructionAdapter.buildInternalConstructorDesc(
-    descVar: Int,
     propsStartVar: Int,
     bitMaskBase: Int,
     codegen: ClassBodyCodegen,
     args: List<SerializableProperty>
 ): String {
     val constructorDesc = StringBuilder("(")
-    load(descVar, descType)
-    constructorDesc.append("Lkotlinx/serialization/descriptors/$SERIAL_DESCRIPTOR_CLASS;")
-
     repeat(args.bitMaskSlotCount()) {
         constructorDesc.append("I")
         load(bitMaskBase + it, Type.INT_TYPE)
