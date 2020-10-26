@@ -135,7 +135,7 @@ private object PathRelativizer {
 /**
  * Copies a file or directory located by this path to the given [target] path.
  *
- * Unlike `File.copyTo`, if some directories on a way to the [target] are missing, then they won't be created automatically.
+ * Unlike `File.copyTo`, if some directories on the way to the [target] are missing, then they won't be created automatically.
  * You can use the following approach to ensure that required intermediate directories are created:
  * ```
  * sourcePath.copyTo(destinationPath.apply { parent?.createDirectories() })
@@ -171,7 +171,7 @@ public inline fun Path.copyTo(target: Path, overwrite: Boolean = false): Path {
 /**
  * Copies a file or directory located by this path to the given [target] path.
  *
- * Unlike `File.copyTo`, if some directories on a way to the [target] are missing, then they won't be created automatically.
+ * Unlike `File.copyTo`, if some directories on the way to the [target] are missing, then they won't be created automatically.
  * You can use the following approach to ensure that required intermediate directories are created:
  * ```
  * sourcePath.copyTo(destinationPath.apply { parent?.createDirectories() })
@@ -207,7 +207,7 @@ public inline fun Path.copyTo(target: Path, vararg options: CopyOption): Path {
 }
 
 /**
- * Check if the file located by this path exists.
+ * Checks if the file located by this path exists.
  *
  * @return `true`, if the file definitely exists, `false` otherwise,
  * including situations when the existence cannot be determined.
@@ -222,7 +222,7 @@ public inline fun Path.copyTo(target: Path, vararg options: CopyOption): Path {
 public inline fun Path.exists(vararg options: LinkOption): Boolean = Files.exists(this, *options)
 
 /**
- * Check if the file located by this path does not exist.
+ * Checks if the file located by this path does not exist.
  *
  * @return `true`, if the file definitely does not exist, `false` otherwise,
  * including situations when the existence cannot be determined.
@@ -237,7 +237,7 @@ public inline fun Path.exists(vararg options: LinkOption): Boolean = Files.exist
 public inline fun Path.notExists(vararg options: LinkOption): Boolean = Files.notExists(this, *options)
 
 /**
- * Check if the file located by this path is a file.
+ * Checks if the file located by this path is a regular file.
  *
  * @param options options to control how symbolic links are handled.
  *
@@ -249,7 +249,7 @@ public inline fun Path.notExists(vararg options: LinkOption): Boolean = Files.no
 public inline fun Path.isRegularFile(vararg options: LinkOption): Boolean = Files.isRegularFile(this, *options)
 
 /**
- * Check if the file located by this path is a directory.
+ * Checks if the file located by this path is a directory.
  *
  * By default, symbolic links in the path are followed.
  *
@@ -263,7 +263,7 @@ public inline fun Path.isRegularFile(vararg options: LinkOption): Boolean = File
 public inline fun Path.isDirectory(vararg options: LinkOption): Boolean = Files.isDirectory(this, *options)
 
 /**
- * Check if the file located by this path exists and is a symbolic link.
+ * Checks if the file located by this path exists and is a symbolic link.
  *
  * @see Files.isSymbolicLink
  */
@@ -273,7 +273,7 @@ public inline fun Path.isDirectory(vararg options: LinkOption): Boolean = Files.
 public inline fun Path.isSymbolicLink(): Boolean = Files.isSymbolicLink(this)
 
 /**
- * Check if the file located by this path exists and is executable.
+ * Checks if the file located by this path exists and is executable.
  *
  * @see Files.isExecutable
  */
@@ -283,7 +283,7 @@ public inline fun Path.isSymbolicLink(): Boolean = Files.isSymbolicLink(this)
 public inline fun Path.isExecutable(): Boolean = Files.isExecutable(this)
 
 /**
- * Check if the file located by this path is considered hidden.
+ * Checks if the file located by this path is considered hidden.
  *
  * This check is dependant on the current filesystem. For example, on UNIX-like operating systems, a
  * path is considered hidden if its name begins with a dot. On Windows, file attributes are checked.
@@ -296,7 +296,7 @@ public inline fun Path.isExecutable(): Boolean = Files.isExecutable(this)
 public inline fun Path.isHidden(): Boolean = Files.isHidden(this)
 
 /**
- * Check if the file located by this path exists and is readable.
+ * Checks if the file located by this path exists and is readable.
  *
  * @see Files.isReadable
  */
@@ -306,7 +306,7 @@ public inline fun Path.isHidden(): Boolean = Files.isHidden(this)
 public inline fun Path.isReadable(): Boolean = Files.isReadable(this)
 
 /**
- * Check if the file located by this path exists and is writable.
+ * Checks if the file located by this path exists and is writable.
  *
  * @see Files.isWritable
  */
@@ -316,7 +316,7 @@ public inline fun Path.isReadable(): Boolean = Files.isReadable(this)
 public inline fun Path.isWritable(): Boolean = Files.isWritable(this)
 
 /**
- * Check if the file located by this path points to the same file or directory as [other].
+ * Checks if the file located by this path points to the same file or directory as [other].
  *
  * @see Files.isSameFile
  */
@@ -326,7 +326,7 @@ public inline fun Path.isWritable(): Boolean = Files.isWritable(this)
 public inline fun Path.isSameFileAs(other: Path): Boolean = Files.isSameFile(this, other)
 
 /**
- * Return a list of the entries in this directory optionally filtered by matching against the specified [glob] pattern.
+ * Returns a list of the entries in this directory optionally filtered by matching against the specified [glob] pattern.
  *
  * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
  *
@@ -343,7 +343,7 @@ public fun Path.listDirectoryEntries(glob: String = "*"): List<Path> {
 }
 
 /**
- * Call the [block] callback with a sequence of all entries in this directory
+ * Calls the [block] callback with a sequence of all entries in this directory
  * optionally filtered by matching against the specified [glob] pattern.
  *
  * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
@@ -363,7 +363,7 @@ public inline fun <T> Path.useDirectoryEntries(glob: String = "*", block: (Seque
 }
 
 /**
- * Perform the given [action] on each entry in this directory optionally filtered by matching against the specified [glob] pattern.
+ * Performs the given [action] on each entry in this directory optionally filtered by matching against the specified [glob] pattern.
  *
  * @param glob the globbing pattern. The syntax is specified by the [FileSystem.getPathMatcher] method.
  *
@@ -671,7 +671,6 @@ public inline fun Path.getOwner(vararg options: LinkOption): UserPrincipal? =
     Files.getOwner(this, *options)
 
 /**
- *
  * Sets the file owner to the specified [value].
  *
  * @throws UnsupportedOperationException if the associated file system does not support the [FileOwnerAttributeView].
@@ -898,9 +897,9 @@ public inline fun Path(base: String, vararg subpaths: String): Path =
     Paths.get(base, *subpaths)
 
 /**
- *  Converts this URI to a [Path] object.
+ * Converts this URI to a [Path] object.
  *
- *  @see Paths.get
+ * @see Paths.get
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi

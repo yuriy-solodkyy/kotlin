@@ -93,7 +93,7 @@ public inline fun Path.readBytes(): ByteArray {
 }
 
 /**
- * Write an [array] of bytes to this file.
+ * Writes an [array] of bytes to this file.
  *
  * By default, the file will be overwritten if it already exists, but you can control this behavior
  * with [options].
