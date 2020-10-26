@@ -1,10 +1,11 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.ide.konan
 
+import com.intellij.codeInsight.TestFrameworks
 import com.intellij.execution.actions.RunConfigurationProducer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.libraries.DummyLibraryProperties
@@ -12,6 +13,8 @@ import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.PersistentLibraryKind
 import com.intellij.openapi.roots.ui.configuration.libraries.CustomLibraryDescription
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.asJava.KotlinAsJavaSupport
+import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.KotlinFacetSettingsProvider
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -28,6 +31,7 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.konan.NativePlatforms
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import javax.swing.Icon
 
 class NativeIdePlatformKindTooling : IdePlatformKindTooling() {
@@ -54,6 +58,15 @@ class NativeIdePlatformKindTooling : IdePlatformKindTooling() {
 
             if (availableRunConfigurations.firstOrNull() == null) {
                 return@getGenericTestIcon null
+            }
+
+            if (declaration is KtClassOrObject) {
+                val qualifiedName = KotlinAsJavaSupport
+                    .getInstance(declaration.project)
+                    .getLightClass(declaration)
+                    ?.qualifiedName?.substringBeforeLast('.') ?: return@getGenericTestIcon emptyList()
+
+                return@getGenericTestIcon listOf(qualifiedName)
             }
 
             return@getGenericTestIcon emptyList()
