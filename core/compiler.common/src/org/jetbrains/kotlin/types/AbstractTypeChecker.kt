@@ -407,9 +407,12 @@ object AbstractTypeChecker {
         val superTypeCaptured = superType.asCapturedType()
         val lowerType = superTypeCaptured?.lowerType()
         if (superTypeCaptured != null && lowerType != null) {
+            // If both are nullable, e.g., to check if T? a subtype of Captured<in T>?, we check the non-null variant of LHS, T,
+            // against the lower type of RHS, Captured<in T>. See KT-42825
+            val properSubType = if (subType.isMarkedNullable() && superType.isMarkedNullable()) subType.withNullability(false) else subType
             when (getLowerCapturedTypePolicy(subType, superTypeCaptured)) {
-                CHECK_ONLY_LOWER -> return isSubtypeOf(this, subType, lowerType)
-                CHECK_SUBTYPE_AND_LOWER -> if (isSubtypeOf(this, subType, lowerType)) return true
+                CHECK_ONLY_LOWER -> return isSubtypeOf(this, properSubType, lowerType)
+                CHECK_SUBTYPE_AND_LOWER -> if (isSubtypeOf(this, properSubType, lowerType)) return true
                 SKIP_LOWER -> Unit
             }
         }
