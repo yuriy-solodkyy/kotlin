@@ -33,7 +33,7 @@ class PathReadWriteTest : AbstractPathTest() {
         writer.close()
 
         val list = ArrayList<String>()
-        file.forEachLine(charset = Charsets.UTF_8, options = arrayOf(StandardOpenOption.READ)) {
+        file.forEachLine(charset = Charsets.UTF_8) {
             list.add(it)
         }
         assertEquals(listOf("Hello", "World"), list)

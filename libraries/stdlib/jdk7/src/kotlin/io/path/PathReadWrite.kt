@@ -168,16 +168,15 @@ public fun Path.appendText(text: String, charset: Charset = Charsets.UTF_8) {
  *
  * You may use this function on huge files.
  *
- * @param options options to determine how the file is opened.
  * @param charset character set to use for reading text, UTF-8 by default.
  * @param action function to process file lines.
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
 @kotlin.internal.InlineOnly
-public inline fun Path.forEachLine(charset: Charset = Charsets.UTF_8, vararg options: OpenOption, action: (line: String) -> Unit): Unit {
+public inline fun Path.forEachLine(charset: Charset = Charsets.UTF_8, action: (line: String) -> Unit): Unit {
     // cannot use non-inline forEachLine
-    Files.newInputStream(this, *options).reader(charset).buffered().useLines { it.forEach(action) }
+    Files.newBufferedReader(this, charset).useLines { it.forEach(action) }
 }
 
 /**
