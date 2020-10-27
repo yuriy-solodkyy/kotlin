@@ -508,6 +508,16 @@ public inline fun Path.moveTo(target: Path, overwrite: Boolean = false): Path {
     return Files.move(this, target, *options)
 }
 
+/**
+ * Returns the [FileStore] representing the file store where a file is located.
+ *
+ * @see Files.getFileStore
+ */
+@SinceKotlin("1.4")
+@ExperimentalPathApi
+@kotlin.internal.InlineOnly
+public inline fun Path.fileStore(): FileStore =
+    Files.getFileStore(this)
 
 /**
  * Reads the value of a file attribute.
@@ -584,17 +594,6 @@ public inline fun <reified V : FileAttributeView> Path.fileAttributesView(vararg
 @PublishedApi
 internal fun fileAttributeViewNotAvailable(path: Path, attributeViewClass: Class<*>): Nothing =
     throw UnsupportedOperationException("The desired attribute view type $attributeViewClass is not available for the file $path.")
-
-/**
- * Returns the [FileStore] representing the file store where a file is located.
- *
- * @see Files.getFileStore
- */
-@SinceKotlin("1.4")
-@ExperimentalPathApi
-@kotlin.internal.InlineOnly
-public inline fun Path.fileStore(): FileStore =
-    Files.getFileStore(this)
 
 /**
  * Reads a file's attributes of the specified type [A] in bulk.
