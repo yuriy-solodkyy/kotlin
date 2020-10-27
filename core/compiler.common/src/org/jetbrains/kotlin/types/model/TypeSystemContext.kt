@@ -174,8 +174,6 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
     fun CapturedTypeMarker.typeParameter(): TypeParameterMarker?
     fun CapturedTypeMarker.withNotNullProjection(): KotlinTypeMarker
 
-    fun DefinitelyNotNullTypeMarker.original(): SimpleTypeMarker
-
     fun typeSubstitutorByTypeConstructor(map: Map<TypeConstructorMarker, KotlinTypeMarker>): TypeSubstitutorMarker
     fun createEmptySubstitutor(): TypeSubstitutorMarker
 
@@ -253,6 +251,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun KotlinTypeMarker.isCapturedType() = asSimpleType()?.asCapturedType() != null
 
     fun SimpleTypeMarker.asDefinitelyNotNullType(): DefinitelyNotNullTypeMarker?
+    fun DefinitelyNotNullTypeMarker.original(): SimpleTypeMarker
     fun SimpleTypeMarker.isMarkedNullable(): Boolean
     fun KotlinTypeMarker.isMarkedNullable(): Boolean =
         this is SimpleTypeMarker && isMarkedNullable()

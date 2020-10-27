@@ -404,7 +404,9 @@ object AbstractTypeChecker {
 
         if (subType.isStubType() || superType.isStubType()) return isStubTypeEqualsToAnything
 
-        val superTypeCaptured = superType.asCapturedType()
+        // superType might be a definitely notNull type (see KT-42824)
+        val superOriginalType = superType.asDefinitelyNotNullType()?.original() ?: superType
+        val superTypeCaptured = superOriginalType.asCapturedType()
         val lowerType = superTypeCaptured?.lowerType()
         if (superTypeCaptured != null && lowerType != null) {
             // If both are nullable, e.g., to check if T? a subtype of Captured<in T>?, we check the non-null variant of LHS, T,

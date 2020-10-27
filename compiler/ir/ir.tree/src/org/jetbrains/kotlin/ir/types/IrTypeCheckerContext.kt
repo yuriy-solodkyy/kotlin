@@ -8,9 +8,7 @@ package org.jetbrains.kotlin.ir.types
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext
-import org.jetbrains.kotlin.types.model.KotlinTypeMarker
-import org.jetbrains.kotlin.types.model.SimpleTypeMarker
-import org.jetbrains.kotlin.types.model.TypeConstructorMarker
+import org.jetbrains.kotlin.types.model.*
 
 open class IrTypeCheckerContext(override val irBuiltIns: IrBuiltIns) : IrTypeSystemContext, AbstractTypeCheckerContext() {
 
@@ -42,4 +40,7 @@ open class IrTypeCheckerContext(override val irBuiltIns: IrBuiltIns) : IrTypeSys
 
     override fun captureFromExpression(type: KotlinTypeMarker): KotlinTypeMarker? =
         error("Captured type is unsupported in IR")
+
+    override fun DefinitelyNotNullTypeMarker.original(): SimpleTypeMarker =
+        error("DefinitelyNotNull type is unsupported in IR")
 }
