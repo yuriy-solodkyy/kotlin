@@ -71,7 +71,7 @@ public val Path.invariantSeparatorsPath: String
 public fun Path.relativeTo(base: Path): Path = try {
     PathRelativizer.tryRelativeTo(this, base)
 } catch (e: IllegalArgumentException) {
-    throw java.lang.IllegalArgumentException(e.message + "\nthis path: $this\nbase path: $base", e)
+    throw IllegalArgumentException(e.message + "\nthis path: $this\nbase path: $base", e)
 }
 
 /**
@@ -526,7 +526,7 @@ public inline fun Path.fileStore(): FileStore =
  * ```
  * [view_name:]attribute_name
  * ```
- * When the view name is not specified, it default to `basic`.
+ * When the view name is not specified, it defaults to `basic`.
  *
  * @throws UnsupportedOperationException if the attribute view is not supported.
  * @throws IllegalArgumentException if the attribute name is not specified or is not recognized.
@@ -545,7 +545,7 @@ public inline fun Path.getAttribute(attribute: String, vararg options: LinkOptio
  * ```
  * [view_name:]attribute_name
  * ```
- * When the view name is not specified, it default to `basic`.
+ * When the view name is not specified, it defaults to `basic`.
  *
  * @throws UnsupportedOperationException if the attribute view is not supported.
  * @throws IllegalArgumentException if the attribute name is not specified or is not recognized, or
@@ -736,7 +736,6 @@ public inline fun Path.createLinkPointingTo(target: Path): Path =
  *   (optional specific exception, some implementations may throw a more general one).
  * @throws UnsupportedOperationException if the implementation does not support symbolic links or the
  *   [attributes] array contains an attribute that cannot be set atomically when creating the symbolic link.
- *
  *
  * @see Files.createSymbolicLink
  */
