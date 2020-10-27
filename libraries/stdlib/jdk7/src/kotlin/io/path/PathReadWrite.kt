@@ -26,7 +26,7 @@ import java.nio.file.StandardOpenOption
 @ExperimentalPathApi
 @kotlin.internal.InlineOnly
 public inline fun Path.reader(charset: Charset = Charsets.UTF_8, vararg options: OpenOption): InputStreamReader {
-    return Files.newInputStream(this, *options).reader(charset)
+    return InputStreamReader(Files.newInputStream(this, *options), charset)
 }
 
 /**
@@ -44,7 +44,12 @@ public inline fun Path.bufferedReader(
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
     vararg options: OpenOption
 ): BufferedReader {
-    return Files.newInputStream(this, *options).reader(charset).buffered(bufferSize)
+    return BufferedReader(
+        InputStreamReader(
+            Files.newInputStream(this, *options),
+            charset
+        ),
+        bufferSize)
 }
 
 /**
@@ -57,7 +62,7 @@ public inline fun Path.bufferedReader(
 @ExperimentalPathApi
 @kotlin.internal.InlineOnly
 public inline fun Path.writer(charset: Charset = Charsets.UTF_8, vararg options: OpenOption): OutputStreamWriter {
-    return Files.newOutputStream(this, *options).writer(charset)
+    return OutputStreamWriter(Files.newOutputStream(this, *options), charset)
 }
 
 /**
@@ -75,7 +80,11 @@ public inline fun Path.bufferedWriter(
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
     vararg options: OpenOption
 ): BufferedWriter {
-    return Files.newOutputStream(this, *options).writer(charset).buffered(bufferSize)
+    return BufferedWriter(
+        OutputStreamWriter(
+            Files.newOutputStream(this, *options),
+            charset),
+        bufferSize)
 }
 
 /**
@@ -130,8 +139,7 @@ public inline fun Path.appendBytes(array: ByteArray) {
  */
 @SinceKotlin("1.4")
 @ExperimentalPathApi
-@kotlin.internal.InlineOnly
-public inline fun Path.readText(charset: Charset = Charsets.UTF_8): String =
+public fun Path.readText(charset: Charset = Charsets.UTF_8): String =
     reader(charset).readText()
 
 /**
