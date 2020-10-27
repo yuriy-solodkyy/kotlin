@@ -90,7 +90,9 @@ public inline fun Path.bufferedWriter(
 /**
  * Gets the entire content of this file as a byte array.
  *
- * This method is not recommended on huge files. It has an internal limitation of 2 GB byte array size.
+ * It's not recommended to use this function on huge files.
+ * It has an internal limitation of approximately 2 GB byte array size.
+ * For reading large files or files of unknown size, open an [InputStream][Path.inputStream] and read blocks sequentially.
  *
  * @return the entire content of this file as a byte array.
  */
@@ -132,7 +134,8 @@ public inline fun Path.appendBytes(array: ByteArray) {
 /**
  * Gets the entire content of this file as a String using UTF-8 or the specified [charset].
  *
- * This method is not recommended on huge files. It has an internal limitation of 2 GB file size.
+ * It's not recommended to use this function on huge files.
+ * For reading large files or files of unknown size, open a [Reader][Path.reader] and read blocks of text sequentially.
  *
  * @param charset character set to use for reading text, UTF-8 by default.
  * @return the entire content of this file as a String.
@@ -218,7 +221,8 @@ public inline fun Path.outputStream(vararg options: OpenOption): OutputStream {
 /**
  * Reads the file content as a list of lines.
  *
- * Do not use this function for huge files.
+ * It's not recommended to use this function on huge files.
+ * For reading lines of a large file or a file of unknown size, use [Path.forEachLine] or [Path.useLines].
  *
  * @param charset character set to use for reading text, UTF-8 by default.
  * @return list of file lines.

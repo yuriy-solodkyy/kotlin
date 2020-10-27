@@ -860,7 +860,7 @@ public inline operator fun Path.div(other: Path): Path =
     this.resolve(other)
 
 /**
- * Resolves the given [other] path against this path.
+ * Resolves the given [other] path string against this path.
  *
  * This operator is a shortcut for the [Path.resolve] function.
  */
