@@ -143,7 +143,7 @@ public inline fun Path.appendBytes(array: ByteArray) {
 @SinceKotlin("1.4")
 @ExperimentalPathApi
 public fun Path.readText(charset: Charset = Charsets.UTF_8): String =
-    reader(charset).readText()
+    reader(charset).use { it.readText() }
 
 /**
  * Sets the content of this file as [text] encoded using UTF-8 or the specified [charset].
