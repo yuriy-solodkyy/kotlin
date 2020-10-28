@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -22,6 +22,14 @@ import java.io.IOException
  * It is recommended that the prefix be a short, meaningful string such as "job" or "mail".
  *
  * To create the new file, the [prefix] and the [suffix] may first be adjusted to fit the limitations of the underlying platform.
+ *
+ * **Note:** if the new directory is created in a directory that is shared with all users,
+ * it may get permissions allowing everyone to read it or its content, thus creating a risk of leaking
+ * sensitive information stored in this directory.
+ * To avoid this, it's recommended either to specify an explicit parent [directory] that is not shared widely,
+ * or to use alternative ways of creating temporary files,
+ * such as [java.nio.file.Files.createTempDirectory](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#createTempDirectory-java.lang.String-java.nio.file.attribute.FileAttribute...-)
+ * or the experimental `createTempDirectory` function in the `kotlin.io.path` package.
  *
  * @return a file object corresponding to a newly-created directory.
  *
@@ -49,6 +57,14 @@ public fun createTempDir(prefix: String = "tmp", suffix: String? = null, directo
  * It is recommended that the prefix be a short, meaningful string such as "job" or "mail".
  *
  * To create the new file, the [prefix] and the [suffix] may first be adjusted to fit the limitations of the underlying platform.
+ *
+ * **Note:** if the new file is created in a directory that is shared with all users,
+ * it may get permissions allowing everyone to read it, thus creating a risk of leaking
+ * sensitive information stored in this file.
+ * To avoid this, it's recommended either to specify an explicit parent [directory] that is not shared widely,
+ * or to use alternative ways of creating temporary files,
+ * such as [java.nio.file.Files.createTempFile](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#createTempFile-java.lang.String-java.lang.String-java.nio.file.attribute.FileAttribute...-)
+ * or the experimental `createTempFile` function in the `kotlin.io.path` package.
  *
  * @return a file object corresponding to a newly-created file.
  *
