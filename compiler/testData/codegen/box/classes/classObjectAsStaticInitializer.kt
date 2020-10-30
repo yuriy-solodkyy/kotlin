@@ -11,8 +11,6 @@ class C {
         global += "B"
       }
 
-      fun ping() {}
-
       init {
           global += "C"
       }

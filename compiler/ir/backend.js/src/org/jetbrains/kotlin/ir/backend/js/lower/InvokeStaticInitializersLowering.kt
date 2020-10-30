@@ -31,6 +31,6 @@ class InvokeStaticInitializersLowering(val context: JsIrBackendContext) : BodyLo
 
         val getInstanceCall = IrCallImpl(irClass.startOffset, irClass.endOffset, context.irBuiltIns.unitType, instance.symbol, 0, 0)
 
-        (container.body as IrStatementContainer).statements.add(0, getInstanceCall)
+        (irBody as IrStatementContainer).statements.add(0, getInstanceCall)
     }
 }
