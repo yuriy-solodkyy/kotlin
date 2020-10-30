@@ -137,7 +137,7 @@ abstract class KotlinLibrarySearchPathResolver<L : KotlinLibrary>(
     private val resolvedLibraries = HashMap<UnresolvedLibrary, L>()
 
     override fun resolve(unresolved: UnresolvedLibrary, isDefaultLink: Boolean): L {
-        return resolvedLibraries.getOrPut(unresolved) {
+        return resolvedLibraries.getOrElse(unresolved) {
             val givenPath = unresolved.path
             try {
                 val fileSequence = resolutionSequence(givenPath)
@@ -147,7 +147,10 @@ abstract class KotlinLibrarySearchPathResolver<L : KotlinLibrary>(
                         .map { it.takeIf { libraryMatch(it, unresolved) } }
                         .filterNotNull()
 
-                matching.firstOrNull() ?: run {
+                matching.firstOrNull()?.also {
+                    if (isDefaultLink)
+                        resolvedLibraries[unresolved] = it
+                } ?: run {
                     logger.fatal("Could not find \"$givenPath\" in ${searchRoots.map { it.absolutePath }}.")
                 }
             } catch (e: Throwable) {
