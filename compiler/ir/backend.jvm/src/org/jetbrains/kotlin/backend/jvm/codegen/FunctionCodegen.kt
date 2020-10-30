@@ -170,7 +170,7 @@ class FunctionCodegen(
 
         return getVisibilityAccessFlag() or modalityFlag or functionDeprecationFlags or
                 (if (isStatic) Opcodes.ACC_STATIC else 0) or
-                (if (isVararg) Opcodes.ACC_VARARGS else 0) or
+                (if (isVararg && !isBridge) Opcodes.ACC_VARARGS else 0) or
                 (if (isExternal) Opcodes.ACC_NATIVE else 0) or
                 (if (isBridge) Opcodes.ACC_BRIDGE else 0) or
                 (if (isSynthetic) Opcodes.ACC_SYNTHETIC else 0) or
