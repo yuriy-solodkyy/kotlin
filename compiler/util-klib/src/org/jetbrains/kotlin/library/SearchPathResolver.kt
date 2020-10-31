@@ -132,12 +132,12 @@ abstract class KotlinLibrarySearchPathResolver<L : KotlinLibrary>(
         }
     }
 
-    // Default libraries in K/N are resolved many times during findLibraries and resolveDependencies.
+    // Default libraries could be resolved several times during findLibraries and resolveDependencies.
     // Store already resolved libraries.
-    private val resolvedLibraries = HashMap<UnresolvedLibrary, L>()
+    private val resolvedDefaultLibraries = HashMap<UnresolvedLibrary, L>()
 
     override fun resolve(unresolved: UnresolvedLibrary, isDefaultLink: Boolean): L {
-        return resolvedLibraries.getOrElse(unresolved) {
+        return resolvedDefaultLibraries.getOrElse(unresolved) {
             val givenPath = unresolved.path
             try {
                 val fileSequence = resolutionSequence(givenPath)
@@ -149,7 +149,7 @@ abstract class KotlinLibrarySearchPathResolver<L : KotlinLibrary>(
 
                 matching.firstOrNull()?.also {
                     if (isDefaultLink)
-                        resolvedLibraries[unresolved] = it
+                        resolvedDefaultLibraries[unresolved] = it
                 } ?: run {
                     logger.fatal("Could not find \"$givenPath\" in ${searchRoots.map { it.absolutePath }}.")
                 }
