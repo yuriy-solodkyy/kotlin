@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.compilerRunner
 
 import org.gradle.api.Project
+import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import org.jetbrains.kotlin.konan.target.HostManager
 import java.io.File
 import java.lang.reflect.InvocationTargetException
@@ -74,21 +75,36 @@ internal abstract class KotlinToolRunner(
     }
 
     private fun runViaExec(args: List<String>) {
+        val classpath = project.files(classpath)
+        val systemProperties = System.getProperties().asSequence()
+            .map { (k, v) -> k.toString() to v.toString() }
+            .filter { (k, _) -> k !in execSystemPropertiesBlacklist }
+            .escapeQuotesForWindows()
+            .toMap()
+        val transformedArgs = transformArgs(args)
+
+        project.logger.kotlinDebug {
+            """
+                About to run $mainClass via Gradle exec.
+                Classpath = $classpath
+                JVM args = $jvmArgs
+                System properties = $systemProperties
+                Exec system properties = $execSystemProperties
+                Environment exclude list = $execEnvironmentBlacklist
+                Environment = $execEnvironment
+                Arguments = $transformedArgs
+            """.trimIndent()
+        }
+
         project.javaexec { spec ->
             spec.main = mainClass
-            spec.classpath = project.files(classpath)
+            spec.classpath = classpath
             spec.jvmArgs(jvmArgs)
-            spec.systemProperties(
-                System.getProperties().asSequence()
-                    .map { (k, v) -> k.toString() to v.toString() }
-                    .filter { (k, _) -> k !in execSystemPropertiesBlacklist }
-                    .escapeQuotesForWindows()
-                    .toMap()
-            )
+            spec.systemProperties(systemProperties)
             spec.systemProperties(execSystemProperties)
             execEnvironmentBlacklist.forEach { spec.environment.remove(it) }
             spec.environment(execEnvironment)
-            spec.args(transformArgs(args))
+            spec.args(transformedArgs)
         }
     }
 
