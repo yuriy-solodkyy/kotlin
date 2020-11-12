@@ -9,7 +9,9 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.jetbrains.annotations.NotNull
 import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder
+import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 import java.io.File
 import java.io.Serializable
@@ -102,7 +104,7 @@ abstract class AbstractKotlinGradleModelBuilder : ModelBuilderService {
     }
 }
 
-class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
+class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder(), ModelBuilderService.Ex {
     override fun getErrorMessageBuilder(project: Project, e: Exception): ErrorMessageBuilder {
         return ErrorMessageBuilder.create(project, e, "Gradle import errors")
             .withDescription("Unable to build Kotlin project configuration")
@@ -162,37 +164,55 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
         }
     }
 
-    override fun buildAll(modelName: String?, project: Project): KotlinGradleModelImpl {
-        val kotlinPluginId = kotlinPluginIds.singleOrNull { project.plugins.findPlugin(it) != null }
-        val platformPluginId = platformPluginIds.singleOrNull { project.plugins.findPlugin(it) != null }
+    override fun buildAll(modelName: String, project: Project): KotlinGradleModelImpl {
+        return buildAll(project, null)
+    }
 
-        val compilerArgumentsBySourceSet = LinkedHashMap<String, ArgsInfo>()
-        val extraProperties = HashMap<String, KotlinTaskProperties>()
+    override fun buildAll(modelName: String, project: Project, builderContext: ModelBuilderContext): KotlinGradleModelImpl {
+        return buildAll(project, builderContext)
+    }
 
-        project.getAllTasks(false)[project]?.forEach { compileTask ->
-            if (compileTask.javaClass.name !in kotlinCompileTaskClasses) return@forEach
+    private fun buildAll(project: Project, builderContext: ModelBuilderContext?): KotlinGradleModelImpl {
+        // When running in Android Studio, Android Studio would request specific source sets only to avoid syncing
+        // currently not active build variants. We convert names to the lower case to avoid ambiguity with build variants
+        // accidentally named starting with upper case.
+        val requestedVariants: Set<String>? = builderContext?.parameter?.splitToSequence(',')?.map { it.toLowerCase() }?.toSet()
+        try {
+            val kotlinPluginId = kotlinPluginIds.singleOrNull { project.plugins.findPlugin(it) != null }
+            val platformPluginId = platformPluginIds.singleOrNull { project.plugins.findPlugin(it) != null }
 
-            val sourceSetName = compileTask.getSourceSetName()
-            val currentArguments = compileTask.getCompilerArguments("getSerializedCompilerArguments")
-                ?: compileTask.getCompilerArguments("getSerializedCompilerArgumentsIgnoreClasspathIssues") ?: emptyList()
-            val defaultArguments = compileTask.getCompilerArguments("getDefaultSerializedCompilerArguments").orEmpty()
-            val dependencyClasspath = compileTask.getDependencyClasspath()
-            compilerArgumentsBySourceSet[sourceSetName] = ArgsInfoImpl(currentArguments, defaultArguments, dependencyClasspath)
-            extraProperties.acknowledgeTask(compileTask, null)
+            val compilerArgumentsBySourceSet = LinkedHashMap<String, ArgsInfo>()
+            val extraProperties = HashMap<String, KotlinTaskProperties>()
+
+            project.getAllTasks(false)[project]?.forEach { compileTask ->
+                if (compileTask.javaClass.name !in kotlinCompileTaskClasses) return@forEach
+                val sourceSetName = compileTask.getSourceSetName()
+                if (requestedVariants != null && !requestedVariants.contains(sourceSetName.toLowerCase())) return@forEach
+                val currentArguments = compileTask.getCompilerArguments("getSerializedCompilerArguments")
+                    ?: compileTask.getCompilerArguments("getSerializedCompilerArgumentsIgnoreClasspathIssues") ?: emptyList()
+                val defaultArguments = compileTask.getCompilerArguments("getDefaultSerializedCompilerArguments").orEmpty()
+                val dependencyClasspath = compileTask.getDependencyClasspath()
+                compilerArgumentsBySourceSet[sourceSetName] = ArgsInfoImpl(currentArguments, defaultArguments, dependencyClasspath)
+                extraProperties.acknowledgeTask(compileTask)
+            }
+
+            val platform = platformPluginId ?: pluginToPlatform.entries.singleOrNull { project.plugins.findPlugin(it.key) != null }?.value
+            val implementedProjects = getImplementedProjects(project)
+
+            return KotlinGradleModelImpl(
+                kotlinPluginId != null || platformPluginId != null,
+                compilerArgumentsBySourceSet,
+                getCoroutines(project),
+                platform,
+                implementedProjects.map { it.pathOrName() },
+                platform ?: kotlinPluginId,
+                extraProperties,
+                project.gradle.gradleUserHomeDir.absolutePath
+            )
         }
-
-        val platform = platformPluginId ?: pluginToPlatform.entries.singleOrNull { project.plugins.findPlugin(it.key) != null }?.value
-        val implementedProjects = getImplementedProjects(project)
-
-        return KotlinGradleModelImpl(
-            kotlinPluginId != null || platformPluginId != null,
-            compilerArgumentsBySourceSet,
-            getCoroutines(project),
-            platform,
-            implementedProjects.map { it.pathOrName() },
-            platform ?: kotlinPluginId,
-            extraProperties,
-            project.gradle.gradleUserHomeDir.absolutePath
-        )
+        catch (e: Exception) {
+            System.err.println("Exception while building KotlinGradleModel for ${project.path}@${requestedVariants}.\n${e.message}")
+            throw e;
+        }
     }
 }
