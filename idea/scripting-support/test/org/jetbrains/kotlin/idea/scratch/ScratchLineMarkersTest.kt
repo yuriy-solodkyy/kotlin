@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.codeInsight.AbstractLineMarkersTest
 import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManager
 import org.jetbrains.kotlin.idea.scratch.AbstractScratchRunActionTest.Companion.configureOptions
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.kotlin.psi.KtFile
 import java.io.File
 
@@ -46,7 +45,7 @@ abstract class AbstractScratchLineMarkersTest : FileEditorManagerTestCase() {
         val project = myFixture.project
         val document = myFixture.editor.document
 
-        val data = ExpectedHighlightingData(document, false, false, false, myFixture.file)
+        val data = ExpectedHighlightingData(document, false, false, false)
         data.init()
 
         PsiDocumentManager.getInstance(project).commitAllDocuments()
@@ -59,9 +58,9 @@ abstract class AbstractScratchLineMarkersTest : FileEditorManagerTestCase() {
     override fun tearDown() {
         super.tearDown()
 
-        ScratchFileService.getInstance().scratchesMapping.mappings.forEach { file, _ ->
-            runWriteAction { file.delete(this) }
-        }
+//        (ScratchFileService.getInstance().scratchesMapping as PerFileMappingsEx<Language>).mappings.forEach { file, _ ->
+//            runWriteAction { file.delete(this) }
+//        }
     }
 
     private fun doAndCheckHighlighting(
@@ -69,7 +68,7 @@ abstract class AbstractScratchLineMarkersTest : FileEditorManagerTestCase() {
     ): List<LineMarkerInfo<*>> {
         myFixture.doHighlighting()
 
-        return AbstractLineMarkersTest.checkHighlighting(myFixture.project, documentToAnalyze, expectedHighlighting, expectedFile)
+        return AbstractLineMarkersTest.checkHighlighting(myFixture.file, documentToAnalyze, expectedHighlighting, expectedFile)
     }
 
 }

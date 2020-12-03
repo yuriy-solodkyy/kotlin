@@ -111,7 +111,7 @@ abstract class AbstractConfigureKotlinTest : PlatformTestCase() {
     }
 
     override fun doCreateProject(projectFile: Path): Project {
-        return (ProjectManagerEx.getInstanceEx()).loadProject(projectFile)
+        return (ProjectManagerEx.getInstanceEx()).loadProject(projectFile.toAbsolutePath())
     }
 
     private val projectName: String
@@ -237,14 +237,14 @@ abstract class AbstractConfigureKotlinTest : PlatformTestCase() {
     private val pathToNonexistentRuntimeJar: String
         get() {
             val pathToTempKotlinRuntimeJar = FileUtil.getTempDirectory() + "/" + PathUtil.KOTLIN_JAVA_STDLIB_JAR
-            myFilesToDelete.add(File(pathToTempKotlinRuntimeJar))
+            myFilesToDelete.add(File(pathToTempKotlinRuntimeJar).toPath())
             return pathToTempKotlinRuntimeJar
         }
 
     private val pathToNonexistentJsJar: String
         get() {
             val pathToTempKotlinRuntimeJar = FileUtil.getTempDirectory() + "/" + PathUtil.JS_LIB_JAR_NAME
-            myFilesToDelete.add(File(pathToTempKotlinRuntimeJar))
+            myFilesToDelete.add(File(pathToTempKotlinRuntimeJar).toPath())
             return pathToTempKotlinRuntimeJar
         }
 

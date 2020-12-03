@@ -65,12 +65,6 @@ dependencies {
             )
         }
     }
-    Platform[202] {
-        testCompile(intellijDep()) { includeJars("intellij-deps-fastutil-8.3.1-1") }
-    }
-    Platform[203].orHigher {
-        testCompile(intellijDep()) { includeJars("intellij-deps-fastutil-8.3.1-3") }
-    }
     testCompile(intellijDep()) {
         includeJars(
             "jps-model",
@@ -99,11 +93,11 @@ dependencies {
     Platform[193].orHigher {
         testCompile(intellijDep()) { includeJars("platform-ide-util-io") }
     }
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>> {
-    kotlinOptions {
-        freeCompilerArgs += "-Xinline-classes"
+    if (Platform.P202.orHigher()) {
+        testCompile(intellijDep()) {
+            includeJars("intellij-deps-fastutil-8.3.1-1")
+            isTransitive = false
+        }
     }
 }
 
